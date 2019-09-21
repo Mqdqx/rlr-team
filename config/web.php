@@ -5,6 +5,9 @@ $db = require __DIR__ . '/db.php';
 
 $config = [
     'id' => 'basic',
+    'language' => 'zh-CN',
+    'timezone' => 'Asia/Chongqing',
+    'name' => '人恋人公益平台',
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
     'aliases' => [

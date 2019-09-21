@@ -1,0 +1,52 @@
+<?php
+
+namespace app\models;
+
+use Yii;
+
+/**
+ * This is the model class for table "vote_res".
+ *
+ * @property int $id 投票任何时刻结果主键ID
+ * @property int $vote_id 隶属的投票活动的ID
+ * @property string $username 候选者学生姓名
+ * @property int $wish_id 候选者的心愿ID
+ * @property int $amount 获得票数
+ * @property int $result 结果：0->投票未结束，1->胜出，2->淘汰
+ */
+class VoteRes extends \yii\db\ActiveRecord
+{
+    /**
+     * {@inheritdoc}
+     */
+    public static function tableName()
+    {
+        return 'vote_res';
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function rules()
+    {
+        return [
+            [['vote_id', 'wish_id', 'amount', 'result'], 'integer'],
+            [['username'], 'string', 'max' => 255],
+        ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function attributeLabels()
+    {
+        return [
+            'id' => '投票任何时刻结果主键ID',
+            'vote_id' => '隶属的投票活动的ID',
+            'username' => '候选者学生姓名',
+            'wish_id' => '候选者的心愿ID',
+            'amount' => '获得票数',
+            'result' => '结果：0->投票未结束，1->胜出，2->淘汰',
+        ];
+    }
+}
