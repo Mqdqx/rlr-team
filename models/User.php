@@ -21,14 +21,22 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     }
 
     /**
-     * Finds user by username
+     * 通过邮箱地址查获本对象
      *
      * @param string $username
      * @return static|null
      */
-    public static function findByUsername($username)
+    public static function findByEmail($email)
     {
-        return static::findOne(['username' => $username]);
+        return static::find()->where(['email' => $email])->one();
+    }
+
+    /**
+     * 通过手机号码查获本对象
+     */
+    public static function findByNumber($number)
+    {
+        return static::find()->where(['number' => $number])->one();
     }
 
     /**
@@ -63,6 +71,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
      */
     public function validatePassword($password)
     {
-        return $this->password === $password;
+        //哈希对比，传入密码已数据库中的密码对比
+        return password_verify($password,$this->password);
     }
 }

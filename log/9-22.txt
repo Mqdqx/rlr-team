@@ -1,0 +1,13 @@
+9-22
+1.暂时去掉了页脚
+2.创建了admin,community,sponsor,student,team,witness控制器；定义的最基本的权限访问过滤
+3.前台界面搭建:
+	{
+		站内通信功能site/message:{1.收件箱，2.已经发送的信息，3.发送信息功能界面}
+		首页发布功能admin/release:{1.首页发布功能 尚未定义具体实现效果}
+		平台财务功能admin/finance:{1.余额,2.流水查询}
+		社区管理功能admin/community:{1.管理社区,2.新建社区}
+		团体管理功能admin/team:{1.管理社区}
+		用户管理功能admin/user:{1.管理团体，2.新建社区管理员(见证人)}
+		心愿管理功能admin/wish:{1.管理心愿}
+	}

@@ -2,9 +2,6 @@
 
 /* @var $this yii\web\View */
 
-$this->title = 'My Yii Application';
+$this->title = '主页-人恋人公益平台';
 ?>
-<div><h2>hellow yii2</h2></div>
-<h3>one modify to try git</h3>
-<h4>作死</h4>
-<code>if you</code><span>chitanda eru</span>
+<h1>主页-人恋人公益平台</h1>

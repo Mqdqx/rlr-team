@@ -48,7 +48,7 @@ class LoginForm extends Model
             $user = $this->getUser();
 
             if (!$user || !$user->validatePassword($this->password)) {
-                $this->addError($attribute, 'Incorrect username or password.');
+                $this->addError($attribute, '账号或密码错误.');
             }
         }
     }
@@ -73,9 +73,38 @@ class LoginForm extends Model
     public function getUser()
     {
         if ($this->_user === false) {
-            $this->_user = User::findByUsername($this->username);
+            //通过邮箱
+            $this->_user = User::findByEmail($this->username);
+            //通过手机号
+            if (!$this->_user) {
+                $this->_user = User::findByNumber($this->username);
+            }
         }
-
         return $this->_user;
+    }
+
+    public function attributeLabels()
+    {
+        return [
+            'username' => '账号',
+            'password' => '密码',
+            'rememberMe' => '记住我',
+        ];
+    }
+
+    /**
+     * 获取用户此次登录的IP地址
+     * 返回IP地址
+     */
+    public function getIp()
+    {
+        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+            $ip_address = $_SERVER['HTTP_CLIENT_IP'];
+        } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            $ip_address = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        } else {
+            $ip_address = $_SERVER['REMOTE_ADDR'];
+        }
+        return $ip_address;
     }
 }

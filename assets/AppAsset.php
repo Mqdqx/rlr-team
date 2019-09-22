@@ -28,4 +28,11 @@ class AppAsset extends AssetBundle
         'yii\web\YiiAsset',
         'yii\bootstrap\BootstrapAsset',
     ];
+
+    /**
+     * 设置：引入外部资源文件时(css/js)时在页面头部引入
+     */
+    public $jsOptions = [
+        'position' => \yii\web\View::POS_HEAD
+    ];
 }
