@@ -39,11 +39,12 @@ AppAsset::register($this);
     echo Nav::widget([
         'options' => ['class' => 'navbar-nav navbar-right'],
         'items' => [
+            ['label' => '主页', 'url' => ['/site/index']],
             ['label' => '关于', 'url' => ['/site/about']],
             ['label' => '社区', 'url' => ['/community/index']],
             ['label' => '应用中心', 'url' => ['/student/index']],
             Yii::$app->user->isGuest ? (
-                ['label' => '登录', 'url' => ['/site/login']],
+                ['label' => '登录', 'url' => ['/site/login']]
             ) : (
                 '<li>'
                 . Html::beginForm(['/site/logout'], 'post')

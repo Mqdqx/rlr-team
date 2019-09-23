@@ -11,6 +11,11 @@ use yii\filters\VerbFilter;
 class StudentController extends Controller
 {
     /**
+     * 指定当前控制器的模板
+     */
+    public $layout = 'student';
+
+    /**
      * {@inheritdoc}
      */
     public function behaviors()

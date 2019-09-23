@@ -39,6 +39,8 @@ AppAsset::register($this);
     echo Nav::widget([
         'options' => ['class' => 'navbar-nav navbar-right'],
         'items' => [
+            ['label' => '主页', 'url' => ['/site/index']],
+            ['label' => '关于', 'url' => ['/site/about']],
             ['label' => '应用中心', 'url' => ['/admin/index']],
             Yii::$app->user->isGuest ? (
                 ['label' => '登录', 'url' => ['/site/login']]

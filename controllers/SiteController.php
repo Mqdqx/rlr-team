@@ -27,10 +27,10 @@ class SiteController extends Controller
             //无权限访问过滤且报错
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['logout','message','contact'],
+                'only' => ['logout','message','contact','personalinfo'],
                 'rules' => [
                     [
-                        'actions' => ['logout','message','contact'],
+                        'actions' => ['logout','message','contact','personalinfo'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -73,6 +73,8 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
+        //重新定义视图模板以适应各种角色用户
+        $this->layout = (Yii::$app->user->isGuest) ? 'site' : Yii::$app->user->identity->role;
         return $this->render('index');
     }
 
@@ -121,6 +123,8 @@ class SiteController extends Controller
      */
     public function actionContact()
     {
+        //重新定义视图模板以适应各种角色用户
+        $this->layout = Yii::$app->user->identity->role;
         $model = new ContactForm();
         if ($model->load(Yii::$app->request->post()) && $model->contact(Yii::$app->params['adminEmail'])) {
             Yii::$app->session->setFlash('contactFormSubmitted');
@@ -144,10 +148,11 @@ class SiteController extends Controller
 
     /**
      * 站内通信功能页
-     * 收件箱
      */
     public function actionMessage()
     {
+        //重新定义视图模板以适应各种角色用户
+        $this->layout = Yii::$app->user->identity->role;
         //判断横向导航栏的选项(get请求)传递到不同的action
         switch (Yii::$app->request->get('option')) {
             //收件箱
@@ -172,4 +177,14 @@ class SiteController extends Controller
         }
     }
 
+    /**
+     * 公共功能-个人信息功能：查看，完善
+     */
+    public function actionPersonalinfo()
+    {
+        //重新定义视图模板以适应各种角色用户
+        $this->layout = Yii::$app->user->identity->role;
+        $data = '个人信息';
+        return $this->render('personalinfo',['data'=>$data]);
+    }
 }

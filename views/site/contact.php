@@ -1,44 +1,44 @@
 <?php
 
-/* @var $this yii\web\View */
-/* @var $form yii\bootstrap\ActiveForm */
-/* @var $model app\models\ContactForm */
-
-use yii\helpers\Html;
+/*已经登录账号公共功能：问题反馈 视图文件*/
 use yii\bootstrap\ActiveForm;
+use yii\helpers\Url;
+use yii\helpers\Html;
 use yii\captcha\Captcha;
 
-$this->title = 'Contact';
+$this->title = '问题反馈';
+$this->params['breadcrumbs'][] = ['label'=>'应用中心','url' => Url::to([Yii::$app->user->identity->role.'/index'])];
 $this->params['breadcrumbs'][] = $this->title;
+
 ?>
-<div class="site-contact">
-    <h1><?= Html::encode($this->title) ?></h1>
+<div class="row">
+    <!-- 先渲染左边导航 -->
+    <?= $this->renderFile('../views/'.Yii::$app->user->identity->role.'/menu.php') ?>
+
+<div class="col-lg-10">
+    <h3><?= Html::encode($this->title) ?></h3>
 
     <?php if (Yii::$app->session->hasFlash('contactFormSubmitted')): ?>
 
         <div class="alert alert-success">
-            Thank you for contacting us. We will respond to you as soon as possible.
+            谢谢您的问题反馈！
         </div>
 
         <p>
             Note that if you turn on the Yii debugger, you should be able
             to view the mail message on the mail panel of the debugger.
-            <?php if (Yii::$app->mailer->useFileTransport): ?>
                 Because the application is in development mode, the email is not sent but saved as
                 a file under <code><?= Yii::getAlias(Yii::$app->mailer->fileTransportPath) ?></code>.
                 Please configure the <code>useFileTransport</code> property of the <code>mail</code>
                 application component to be false to enable email sending.
-            <?php endif; ?>
         </p>
 
     <?php else: ?>
 
         <p>
-            If you have business inquiries or other questions, please fill out the following form to contact us.
-            Thank you.
+            如果您发现系统中存在着问题，请反馈给我们！
         </p>
 
-        <div class="row">
             <div class="col-lg-5">
 
                 <?php $form = ActiveForm::begin(['id' => 'contact-form']); ?>
@@ -52,7 +52,7 @@ $this->params['breadcrumbs'][] = $this->title;
                     <?= $form->field($model, 'body')->textarea(['rows' => 6]) ?>
 
                     <?= $form->field($model, 'verifyCode')->widget(Captcha::className(), [
-                        'template' => '<div class="row"><div class="col-lg-3">{image}</div><div class="col-lg-6">{input}</div></div>',
+                        'template' => '{image}{input}',
                     ]) ?>
 
                     <div class="form-group">
@@ -62,7 +62,8 @@ $this->params['breadcrumbs'][] = $this->title;
                 <?php ActiveForm::end(); ?>
 
             </div>
-        </div>
 
     <?php endif; ?>
+</div>
+
 </div>
