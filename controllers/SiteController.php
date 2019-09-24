@@ -27,7 +27,7 @@ class SiteController extends Controller
             //无权限访问过滤且报错
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['logout','message','contact','personalinfo'],
+                'only' => ['logout','message','contact','personalinfo','register'],
                 'rules' => [
                     [
                         'actions' => ['logout','message','contact','personalinfo'],
@@ -35,7 +35,7 @@ class SiteController extends Controller
                         'roles' => ['@'],
                     ],
                     [
-                        'actions' => [''],
+                        'actions' => ['register'],
                         'allow' => true,
                         'roles' => ['?'],
                     ],
@@ -143,7 +143,20 @@ class SiteController extends Controller
      */
     public function actionAbout()
     {
+        //重新定义视图模板以适应各种角色用户
+        $this->layout = (Yii::$app->user->isGuest) ? 'site' : Yii::$app->user->identity->role;
         return $this->render('about');
+    }
+
+    /**
+     * 注册界面
+     * 邮箱注册 手机号注册
+     * 在校学生注册 资助者注册
+     */
+    public function actionRegister()
+    {
+        
+        return $this->render('register');
     }
 
     /**

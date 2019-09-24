@@ -11,6 +11,11 @@ use yii\filters\VerbFilter;
 class TeamController extends Controller
 {
     /**
+     * 指定当前控制器的模板
+     */
+    public $layout = 'sponsor';
+
+    /**
      * {@inheritdoc}
      */
     public function behaviors()
@@ -19,10 +24,10 @@ class TeamController extends Controller
             //无权限访问过滤且报错
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['index'],
+                'only' => ['index','myteam'],
                 'rules' => [
                     [
-                        'actions' => ['index'],
+                        'actions' => ['index','myteam'],
                         'allow' => true,
                         'roles' => ['@'],
                         'matchCallback' => function($rule,$action) {
@@ -58,7 +63,7 @@ class TeamController extends Controller
     }
 
     /**
-     * Displays homepage.
+     * Displays team homepage.
      *
      * @return string
      */
@@ -67,4 +72,13 @@ class TeamController extends Controller
         return $this->render('index');
     }
     
+    /**
+     * 进入我创建的团体 或者 我创建团体
+     */
+    public function actionMyteam()
+    {
+        //身份验证，根据加入者/创建者 渲染不同页面
+        $data = '团体名称';
+        return $this->render('myteam',['data'=>$data]);
+    }
 }

@@ -54,12 +54,14 @@ class CommunityController extends Controller
     }
 
     /**
-     * Displays homepage.
+     * Displays community homepage.
      *
      * @return string
      */
     public function actionIndex()
     {
+        $this->layout = Yii::$app->user->identity->role;
+        //社区主页
         return $this->render('index');
     }
     

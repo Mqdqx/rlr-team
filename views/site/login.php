@@ -5,6 +5,7 @@
 /* @var $model app\models\LoginForm */
 
 use yii\helpers\Html;
+use yii\helpers\Url;
 use yii\bootstrap\ActiveForm;
 
 $this->title = '用户登录';
@@ -34,6 +35,7 @@ $this->params['breadcrumbs'][] = $this->title;
             <div class="col-lg-offset-1 col-lg-11">
                 <?= Html::submitButton('登录', ['class' => 'btn btn-info', 'name' => 'login-button']) ?>
                 <?= Html::resetButton('重置', ['class' => 'btn btn-primary', 'name' => 'reset-button']) ?>
+                <?= Html::a('注册',Url::to(['site/register']),['class' => 'btn btn-success', 'name' => 'register-button']) ?>
             </div>
         </div>
 

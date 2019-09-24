@@ -1,0 +1,19 @@
+9-24
+1.前台界面的搭建
+	{
+		学生钱包流水功能student/finance:{查询学生个人余额/流水}
+		学生我的心愿功能student/wish:{1.查询自己已发布心愿,2.发布一个心愿}
+		学生升级为资助者功能student/upgrade:{当前状态未所以心愿已完成时可升级为资助者角色}
+
+		学生/资助者/见证人 社区主页community/index:{自己角色所属社区的主页}
+
+		资助者 所有团体team/index:{1.查看所属社区的所有团体慨览，2.进入一个团体team/myteam}
+		资助者 我的团体:{
+			team/myteam
+			team/member
+			team/finance
+			team/support
+			team/vote
+			team/newvote
+		}
+	}
