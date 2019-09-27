@@ -2,7 +2,7 @@
 
 /* @var $this \yii\web\View */
 /* @var $content string */
-/* witness见证人/社区管理员界面模板*/
+/* 会员资助者界面模板*/
 
 use app\widgets\Alert;
 use yii\helpers\Html;
@@ -41,8 +41,9 @@ AppAsset::register($this);
         'items' => [
             ['label' => '主页', 'url' => ['/site/index']],
             ['label' => '关于', 'url' => ['/site/about']],
+            ['label' => '团体', 'url' => ['/team/index']],
             ['label' => '社区', 'url' => ['/community/index']],
-            ['label' => '应用中心', 'url' => ['/student/index']],
+            ['label' => '应用中心', 'url' => ['/vip/index']],
             Yii::$app->user->isGuest ? (
                 ['label' => '登录', 'url' => ['/site/login']]
             ) : (

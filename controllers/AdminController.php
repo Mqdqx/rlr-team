@@ -7,6 +7,8 @@ use yii\filters\AccessControl;
 use yii\web\NotFoundHttpException;
 use yii\web\Controller;
 use yii\filters\VerbFilter;
+use app\models\User;
+use app\models\Community;
 
 class AdminController extends Controller
 {
@@ -102,10 +104,18 @@ class AdminController extends Controller
                 $data = '社区管理';
                 return $this->render('community',['data'=>$data]);
                 break;
-            //新建社区模块
+            //收到一位见证人witness邮寄过来的文件资料，新建一个社区且关联
             case 'newone':
-                $data = '新建社区';
-                return $this->render('community',['data'=>$data]);
+                $model = new Community();
+                $witness = User::find()->where(['status'=>3])->all();
+                if (Yii::$app->request->isPost) {
+                    $post = Yii::$app->request->post();
+                    if ($model->newone($post)) {
+                        Yii::$app->session->setFlash('newCommunity',$model->community_name);
+                        return $this->refresh();
+                    }
+                }
+                return $this->render('community',['model'=>$model,'witness'=>$witness]);
                 break;
             default:
                 throw new NotFoundHttpException("警告！越权操作！");
@@ -133,11 +143,6 @@ class AdminController extends Controller
             //用户管理
             case 'manage':
                 $data = '用户管理';
-                return $this->render('user',['data'=>$data]);
-                break;
-            //新建见证人(社区管理员)用户
-            case 'newone':
-                $data = '新建见证人';
                 return $this->render('user',['data'=>$data]);
                 break;
             default:

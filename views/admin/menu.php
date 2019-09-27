@@ -10,7 +10,7 @@ use yii\helpers\Url;
 	<?=Html::img('./image/admin.jpg',['class' => 'center-block','width' => '120px']); ?>
 	<br>
 	<ul class="nav nav-pills nav-stacked" id="menu">
-		<li role="presentation"><a href=<?=Url::to(['site/message','option'=>'receive'])?>>站内通信</a></li>
+		<li role="presentation"><a href=<?=Url::to(['site/message','option'=>'receive'])?>>内外通信</a></li>
 		<li role="presentation"><a href=<?=Url::to(['admin/release','option'=>'release'])?>>首页发布</a></li>
 		<li role="presentation"><a href=<?=Url::to(['admin/finance'])?>>平台财务</a></li>
   		<li role="presentation"><a href=<?=Url::to(['admin/community','option'=>'manage'])?>>社区管理</a></li>

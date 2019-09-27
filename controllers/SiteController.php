@@ -10,6 +10,7 @@ use yii\web\Response;
 use yii\filters\VerbFilter;
 use app\models\LoginForm;
 use app\models\ContactForm;
+use app\models\User;
 
 class SiteController extends Controller
 {
@@ -27,7 +28,7 @@ class SiteController extends Controller
             //无权限访问过滤且报错
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['logout','message','contact','personalinfo','register'],
+                'only' => ['logout','message','contact','personalinfo','register_vip','register_community'],
                 'rules' => [
                     [
                         'actions' => ['logout','message','contact','personalinfo'],
@@ -35,7 +36,7 @@ class SiteController extends Controller
                         'roles' => ['@'],
                     ],
                     [
-                        'actions' => ['register'],
+                        'actions' => ['register_vip','register_community'],
                         'allow' => true,
                         'roles' => ['?'],
                     ],
@@ -94,6 +95,11 @@ class SiteController extends Controller
             Yii::$app->user->identity->logintime = time();
             Yii::$app->user->identity->loginip = $model->getIp();
             Yii::$app->user->identity->save();
+            if (Yii::$app->user->identity->status == 4) {
+                Yii::$app->user->logout();
+                Yii::$app->session->setFlash('noActivate');
+                return $this->render('error');
+            }
             //跳转到各种用户（角色）的应用中心（控制器）
             return $this->redirect([Yii::$app->user->identity->role.'/index']);
         }
@@ -149,18 +155,47 @@ class SiteController extends Controller
     }
 
     /**
-     * 注册界面
-     * 邮箱注册 手机号注册
-     * 在校学生注册 资助者注册
+     * vip用户注册界面
+     * 邮箱注册
      */
-    public function actionRegister()
+    public function actionRegister_vip()
     {
-        
-        return $this->render('register');
+        $model = new User;
+        //如有post提交，调用模型处理数据(库)
+        if (Yii::$app->request->isPost) {
+            $post = Yii::$app->request->post();
+            if ($model->register('vip',$post)) {
+                Yii::$app->session->setFlash('successRegister');
+                return $this->refresh();
+            }
+        }
+        $model->password = '';
+        $model->repassword = '';
+        return $this->render('register',['model'=>$model]);
     }
 
     /**
-     * 站内通信功能页
+     * witness用户社区管理员注册界面
+     * 邮箱注册
+     */
+    public function actionRegister_community()
+    {
+        $model = new User;
+        //如有post提交，调用模型处理数据(库)
+        if (Yii::$app->request->isPost) {
+            $post = Yii::$app->request->post();
+            if ($model->register('witness',$post)) {
+                Yii::$app->session->setFlash('successRegister');
+                return $this->refresh();
+            }
+        }
+        $model->password = '';
+        $model->repassword = '';
+        return $this->render('register',['model'=>$model]);
+    }
+
+    /**
+     * 内外通信功能页
      */
     public function actionMessage()
     {
@@ -197,7 +232,36 @@ class SiteController extends Controller
     {
         //重新定义视图模板以适应各种角色用户
         $this->layout = Yii::$app->user->identity->role;
-        $data = '个人信息';
-        return $this->render('personalinfo',['data'=>$data]);
+        
+        return $this->render('personalinfo');
     }
+
+    /**
+     * 用于注册后激活账号：vip/community
+     */
+    public function actionUseractivate()
+    {
+        //验证get请求传参
+        $email = Yii::$app->request->get('email');
+        $token = Yii::$app->request->get('token');
+        $user = User::findOne(['email'=>$email,'token'=>$token]);
+        if (!$user) {
+            throw new NotFoundHttpException("警告！伪造请求！你的信息已经记录！");
+        }
+        if ($user->status !== 4) {
+            throw new NotFoundHttpException("该账号已经激活，请勿重复操作！");
+        }
+        $user->status = ($user->role == 'vip') ? 1 : 3;
+        $user->logintime = time();
+        $user->loginip = $user->getIp();
+        if ($user->save()) {
+            if (!Yii::$app->user->isGuest) {
+                Yii::$app->user->logout();
+            }
+            Yii::$app->user->login($user,3600*24*30);
+            Yii::$app->session->setFlash('activated');
+            return $this->render('error');
+        }
+    }
+
 }

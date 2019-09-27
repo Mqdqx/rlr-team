@@ -7,6 +7,8 @@ use yii\filters\AccessControl;
 use yii\web\NotFoundHttpException;
 use yii\web\Controller;
 use yii\filters\VerbFilter;
+use yii\data\Pagination;
+use app\models\Wish;
 
 class WitnessController extends Controller
 {
@@ -24,10 +26,10 @@ class WitnessController extends Controller
             //无权限访问过滤且报错
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['index','finance','wish','user','team'],
+                'only' => ['index','finance','wish','user','team','generate','personalinfo'],
                 'rules' => [
                     [
-                        'actions' => ['index','finance','wish','user','team'],
+                        'actions' => ['index','finance','wish','user','team','generate','personalinfo'],
                         'allow' => true,
                         'roles' => ['@'],
                         'matchCallback' => function($rule,$action) {
@@ -73,6 +75,15 @@ class WitnessController extends Controller
     }
     
     /**
+     * 见证人个人信息(所绑定社区)
+     */
+    public function actionPersonalinfo()
+    {
+        
+        return $this->render('personalinfo');
+    }
+
+    /**
      * 社区流水功能
      */
     public function actionFinance()
@@ -83,14 +94,18 @@ class WitnessController extends Controller
 
     /**
      * 见证人的 本社区心愿管理功能
-     * 待审心愿、已审心愿、资助周期中心愿、已完成心愿
+     * 未激活心愿和生成心愿码/待审心愿、已审心愿、资助周期中心愿、已完成心愿
      */
     public function actionWish()
     {
         switch (Yii::$app->request->get('option')) {
+            //未激活心愿和生成心愿码
+            case 'noactivate':
+                $models = Wish::find_Witness('noactivate');
+                break;
             //待审心愿
             case 'waiting':
-                $data = '待审心愿';
+                
                 break;
             //已审心愿
             case 'approved':
@@ -109,7 +124,11 @@ class WitnessController extends Controller
                 throw new NotFoundHttpException("警告！越权操作！");
                 break;
         }
-        return $this->render('wish',['data'=>$data]);
+        $count = $models->count();
+        $pageSize = Yii::$app->params['pageSize'];
+        $pager = new Pagination(['totalCount'=>$count,'pageSize'=>$pageSize]);
+        $models = $models->offset($pager->offset)->limit($pager->limit)->all(); //分页处理
+        return $this->render('wish',['models'=>$models,'pager'=>$pager]);
     }
 
     /**
@@ -119,10 +138,6 @@ class WitnessController extends Controller
     public function actionUser()
     {
         switch (Yii::$app->request->get('option')) {
-            //学生用户审核
-            case 'approve':
-                $data = '学生用户审核';
-                break;
             //用户管理
             case 'manage':
                 $data = '用户管理';
@@ -142,5 +157,20 @@ class WitnessController extends Controller
     {
         $data = '社区管理';
         return $this->render('team',['data'=>$data]);
+    }
+
+    /**
+     * 产生心愿(心愿码)
+     */
+    public function actionGenerate()
+    {
+        if (Yii::$app->user->identity->status !== 1) {
+            throw new NotFoundHttpException("警告！越权操作！");
+        }
+        $model = new Wish();
+        if ($model->generateToken()) {
+            Yii::$app->session->setFlash('generateWish','新建成功');
+        }
+        return $this->redirect(['witness/wish','option'=>'noactivate']);
     }
 }

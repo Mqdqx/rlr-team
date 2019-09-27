@@ -6,20 +6,27 @@ use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\bootstrap\ActiveForm;
 
-$this->title = '用户注册';
+$this->title = '注册';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
-<div class="site-register">
-	<h3><?= Html::encode($this->title) ?></h3>
+<div class="row">
 	<!-- 横向导航 -->
-	<ul class="nav nav-tabs" id="nav_option">
-		<li><a href=<?=Url::to(['site/register','option'=>'sponsor'])?>>资助者注册</a></li>
-		<li><a href=<?=Url::to(['site/register','option'=>'student'])?>>学生注册</a></li>
+	<ul class="nav nav-tabs" id="menu">
+		<li role="presentation"><a href=<?=Url::to(['site/register_vip'])?>>用户注册</a></li>
+		<li role="presentation"><a href=<?=Url::to(['site/register_community'])?>>社区注册</a></li>
 	</ul>
+	<ul class="nav nav-pills" id="nav_option">
+	</ul>
+	<br>
+	<?php if (Yii::$app->session->hasFlash('successRegister')): ?>
+	<div class="alert alert-success">您已经成功注册，请前往邮箱激活用户！如果使用的是QQ邮箱，请留意垃圾箱！！</div>
+	<?php endif; ?>
 	<!-- 横向导航 -->
 	<!-- 生成渲染注册form -->
 	<?php
-		/*
+		if (Yii::$app->request->get('r') == 'site/register_community') {
+			echo '<h3 class="col-lg-offset-2">社区注册</h3>';
+		}
 		$form = ActiveForm::begin([
 			'id' => 'register-form',
 			'layout' => 'horizontal',
@@ -29,19 +36,20 @@ $this->params['breadcrumbs'][] = $this->title;
         	],
         ]);
     ?>
-	<?=$form->field($,'')->textInput(['placeholder'=>''])->label('') ?>
-	<?=$form->field($,'')->checkbox([
-		'template'=>'<div class="col-lg-offset-1">{input} 已同意：<a href='.Url::to(['site/error']).'target="blank">《人恋人平台服务协议》</a>{error}</div>'
+	<?=$form->field($model,'email')->textInput(['placeholder'=>'请输入邮箱地址'])->label('邮箱') ?>
+	<?=$form->field($model,'password')->passwordInput(['placeholder'=>'请输入密码'])->label('密码') ?>
+	<?=$form->field($model,'repassword')->passwordInput(['placeholder'=>'请再次输入密码'])->label('重复密码') ?>
+	<?=$form->field($model,'agree')->checkbox([
+		'template'=>'<div class="col-lg-offset-2">{input} 已同意：<a href='.Url::to(['site/error']).'target="blank">《人恋人平台服务协议》</a>{error}</div>'
 	]) ?>
 	
 	<div class="form-group">
-        <div class="col-lg-offset-1 col-lg-10">
-			<?= Html::submitButton('注册', ['class' => 'btn btn-info', 'name' => 'register-button', 'data-confirm'=>'您确定进行下一步吗？']) ?>
-			<?= Html::resetButton('重置', ['class' => 'btn btn-primary', 'name' => 'reset-button']) ?>
+        <div class="col-lg-offset-2 col-lg-10">
+			<?= Html::submitButton('注册', ['class' => 'btn btn-info', 'name' => 'register-button']) ?>
+			<?= Html::a('去登录',Url::to(['site/login']),['class' => 'btn btn-primary', 'name' => 'login-button']) ?>
         </div>
 	</div>
 
-	<?php ActiveForm::end(); */?>
+	<?php ActiveForm::end(); ?>
 	<!-- 生成渲染注册form -->
-
 </div>

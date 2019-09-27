@@ -20,7 +20,6 @@ $this->params['breadcrumbs'][] = $this->title;
 		<!-- 横向导航 -->
 		<ul class="nav nav-tabs" id="nav_option">
 			<li><a href=<?=Url::to(['admin/user','option'=>'manage'])?>>用户管理</a></li>
-			<li><a href=<?=Url::to(['admin/user','option'=>'newone'])?>>新建用户</a></li>
 		</ul>
 		<!-- 横向导航 -->
 		<div><h3><?= Html::encode($data) ?></h3></div>

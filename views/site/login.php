@@ -12,6 +12,10 @@ $this->title = '用户登录';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="site-login">
+    <ul class="nav nav-tabs" id="nav_option">
+    </ul>
+    <ul class="nav nav-pills" id="menu">
+    </ul>
     <h3 class="col-lg-offset-1"><?= Html::encode($this->title) ?></h3>
     <!-- 生成渲染登录form -->
     <?php $form = ActiveForm::begin([
@@ -35,7 +39,7 @@ $this->params['breadcrumbs'][] = $this->title;
             <div class="col-lg-offset-1 col-lg-11">
                 <?= Html::submitButton('登录', ['class' => 'btn btn-info', 'name' => 'login-button']) ?>
                 <?= Html::resetButton('重置', ['class' => 'btn btn-primary', 'name' => 'reset-button']) ?>
-                <?= Html::a('注册',Url::to(['site/register']),['class' => 'btn btn-success', 'name' => 'register-button']) ?>
+                <?= Html::a('注册',Url::to(['site/register_vip']),['class' => 'btn btn-success', 'name' => 'register-button']) ?>
             </div>
         </div>
 

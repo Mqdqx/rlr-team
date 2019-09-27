@@ -13,7 +13,7 @@ class TeamController extends Controller
     /**
      * 指定当前控制器的模板
      */
-    public $layout = 'sponsor';
+    public $layout = 'vip';
 
     /**
      * {@inheritdoc}
@@ -32,7 +32,7 @@ class TeamController extends Controller
                         'roles' => ['@'],
                         'matchCallback' => function($rule,$action) {
                             $_role = Yii::$app->user->identity->role;
-                            return ($_role !== 'sponsor') ? ($this->redirect(['site/error'])) : true;
+                            return ($_role !== 'vip') ? ($this->redirect(['site/error'])) : true;
                         }
                     ],
                 ],

@@ -1,8 +1,8 @@
 <?php
 
-/* @var $this view:student/index应用中心 */
+/* @var $this view:vip/index应用中心 */
 
-$this->title = '应用中心-学生';
+$this->title = '应用中心';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 
@@ -14,6 +14,6 @@ $this->params['breadcrumbs'][] = $this->title;
 		<ul class="nav nav-tabs" id="nav_option">
 		</ul>
 		<!-- 横向导航 -->
-		<h1>默认页：各信息总览.....在校学生</h1>
+		<h1>默认页：各信息总览.....</h1>
 	</div>
 </div>

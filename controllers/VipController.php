@@ -8,12 +8,12 @@ use yii\web\NotFoundHttpException;
 use yii\web\Controller;
 use yii\filters\VerbFilter;
 
-class StudentController extends Controller
+class VipController extends Controller
 {
     /**
      * 指定当前控制器的模板
      */
-    public $layout = 'student';
+    public $layout = 'vip';
 
     /**
      * {@inheritdoc}
@@ -24,15 +24,15 @@ class StudentController extends Controller
             //无权限访问过滤且报错
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['index','finance','wish','upgrade'],
+                'only' => ['index','finance','support','wish','mywish'],
                 'rules' => [
                     [
-                        'actions' => ['index','finance','wish','upgrade'],
+                        'actions' => ['index','finance','support','wish','mywish'],
                         'allow' => true,
                         'roles' => ['@'],
                         'matchCallback' => function($rule,$action) {
                             $_role = Yii::$app->user->identity->role;
-                            return ($_role !== 'student') ? ($this->redirect(['site/error'])) : true;
+                            return ($_role !== 'vip') ? ($this->redirect(['site/error'])) : true;
                         }
                     ],
                 ],
@@ -71,9 +71,9 @@ class StudentController extends Controller
     {
         return $this->render('index');
     }
-
+    
     /**
-     * 学生 钱包流水 功能：1.体现，2.查看流水
+     * 个人钱包流水功能:充值，体现，查询流水
      */
     public function actionFinance()
     {
@@ -83,9 +83,29 @@ class StudentController extends Controller
     }
 
     /**
-     * 学生 我的心愿 功能：1.查看关于自己的心愿，2.发布一个心愿
+     * 资助者身份：我的资助 查看功能
+     */
+    public function actionSupport()
+    {
+        //
+        $data = '我的资助';
+        return $this->render('support',['data'=>$data]);
+    }
+
+    /**
+     * 资助者身份：查看对应范围(社区)学生发布的心愿
      */
     public function actionWish()
+    {
+        //
+        $data = '心愿广场';
+        return $this->render('wish',['data'=>$data]);
+    }
+
+    /**
+     * 以被资助者身份 我的心愿 功能：1.查看关于自己的心愿，2.发布一个心愿
+     */
+    public function actionMywish()
     {
         //由get传参右侧横向导航option的不同渲染不同功能
         switch (Yii::$app->request->get('option')) {
@@ -102,16 +122,7 @@ class StudentController extends Controller
                 throw new NotFoundHttpException("警告！越权操作！");
                 break;
         }
-        return $this->render('wish',['data'=>$data]);
+        return $this->render('mywish',['data'=>$data]);
     }
 
-    /**
-     * 学生 升级为资助者 功能：必须在完成心愿状态下操作
-     */
-    public function actionUpgrade()
-    {
-        //
-        $data = '升级为资助者';
-        return $this->render('upgrade',['data'=>$data]);
-    }
 }

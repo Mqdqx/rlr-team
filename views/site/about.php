@@ -13,6 +13,10 @@ $this->params['breadcrumbs'][] = $this->title;
         <h1>关于人恋人</h1>
     </div>
     <div class="row">
+        <ul class="nav nav-tabs" id="nav_option">
+  </ul>
+  <ul class="nav nav-pills" id="menu">
+  </ul>
         <div class="col-xs-3" id="myScrollspy">
             <ul class="nav nav-tabs nav-stacked" data-spy="affix" data-offset-top="125">
                 <li class="active"><a href="#section-1">一、人恋人诞生记</a></li>

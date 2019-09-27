@@ -1,6 +1,6 @@
 9-22
 1.暂时去掉了页脚
-2.创建了admin,community,sponsor,student,team,witness控制器；定义的最基本的权限访问过滤
+2.创建了admin,community,vip,team,witness控制器；定义的最基本的权限访问过滤
 3.前台界面搭建:
 	{
 		站内通信功能site/message:{1.收件箱，2.已经发送的信息，3.发送信息功能界面}

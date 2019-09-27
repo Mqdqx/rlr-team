@@ -1,7 +1,11 @@
 <?php
 
 return [
-    'adminEmail' => 'admin@example.com',
-    'senderEmail' => 'noreply@example.com',
-    'senderName' => 'Example.com mailer',
+    'adminEmail' => 'rlrteam@rlr.com',
+    'senderEmail' => 'rlrteam@163.com',
+    'senderName' => '人恋人公益平台',
+	'pageSize' => 10,//分页时的每页显示数据
+
+
+    'DNS' => '127.0.0.1/rlr-team/web/index.php',
 ];

@@ -19,7 +19,6 @@ $this->params['breadcrumbs'][] = $this->title;
 	<div class="col-lg-10">
 		<!-- 横向导航 -->
 		<ul class="nav nav-tabs" id="nav_option">
-			<li><a href=<?=Url::to(['witness/user','option'=>'approve'])?>>用户审核</a></li>
 			<li><a href=<?=Url::to(['witness/user','option'=>'manage'])?>>用户管理</a></li>
 		</ul>
 		<!-- 横向导航 -->
