@@ -19,12 +19,26 @@ $this->params['breadcrumbs'][] = $this->title;
 	<div class="col-lg-10">
 		<!-- 横向导航 -->
 		<ul class="nav nav-tabs" id="nav_option">
-			<li><a href=<?=Url::to(['student/wish','option'=>'see'])?>>我的心愿</a></li>			
-			<li class="disabled"><a href=<?=Url::to(['student/wish','option'=>'newone'])?>>发布心愿</a></li>			
+			<li><a href=<?=Url::to(['vip/mywish','option'=>'see'])?>>我的心愿</a></li>			
+			<li><a href=<?=Url::to(['vip/mywish','option'=>'newone'])?>>发布心愿</a></li>		
 		</ul>
 		<!-- 横向导航 -->
+		<br>
+		<?php if(Yii::$app->request->get('option') == 'see'): ?>
+
+		<?php elseif(Yii::$app->request->get('option') == 'newone'): ?>
+
+			<?php if(Yii::$app->user->identity->noComplete('newWish')): ?>
+				<div class="alert alert-warning">您的个人信息：
+					<br><b><?=Yii::$app->user->identity->noComplete('newWish') ?></b>
+					<br>选项中存在未完善的地方，因此无法使用此功能！
+					<br>(隐私项仅用于平台或社区老师联系您，不会对外公开！)		
+				</div>
+			<?php endif; ?>
+
+		<?php endif; ?>
 		<div>
-			<h3><?= Html::encode($data) ?></h3>
+
 		</div>
 	</div>
 </div>

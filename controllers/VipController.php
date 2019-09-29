@@ -111,18 +111,18 @@ class VipController extends Controller
         switch (Yii::$app->request->get('option')) {
             //查看心愿
             case 'see':
-                $data = '我的心愿';
+
                 break;
             //发布一个心愿    
             case 'newone':
-                $data = '发布心愿';
+
                 break;
             //其它传参报错
             default:
                 throw new NotFoundHttpException("警告！越权操作！");
                 break;
         }
-        return $this->render('mywish',['data'=>$data]);
+        return $this->render('mywish');
     }
 
 }

@@ -232,8 +232,25 @@ class SiteController extends Controller
     {
         //重新定义视图模板以适应各种角色用户
         $this->layout = Yii::$app->user->identity->role;
-        
-        return $this->render('personalinfo');
+        $model = Yii::$app->user->identity;
+        switch (Yii::$app->request->get('option')) {
+            case 'modify':
+                if (Yii::$app->request->isPost) {
+                    $post = Yii::$app->request->post();
+                    if ($model->modify($post)) {
+                        Yii::$app->session->setFlash('modifySuccess','修改完善成功!');
+                        return $this->refresh();
+                    }
+                }
+                break;
+            case 'guardian':
+                
+                break;
+            default:
+
+                break;
+        }
+        return $this->render('personalinfo',['model'=>$model]);
     }
 
     /**

@@ -53,7 +53,7 @@ class Wish extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['user_id', 'tokentime', 'month','transfered' ,'label', 'range', 'verify_user_id', 'verify_time','start_time', 'status', 'locking_id', 'vision'], 'integer'],
+            [['user_id', 'tokentime', 'month','transfered' ,'label', 'range', 'verify_user_id', 'verify_time','start_time', 'status', 'locking_id', 'version'], 'integer'],
             [['money'], 'number'],
             [['file','token'], 'string', 'max' => 100],
             [['description', 'verify_res'], 'string', 'max' => 255],
