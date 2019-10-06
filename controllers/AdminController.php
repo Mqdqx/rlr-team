@@ -110,9 +110,15 @@ class AdminController extends Controller
                 $witness = User::find()->where(['status'=>3])->all();
                 if (Yii::$app->request->isPost) {
                     $post = Yii::$app->request->post();
-                    if ($model->newone($post)) {
-                        Yii::$app->session->setFlash('newCommunity',$model->community_name);
-                        return $this->refresh();
+                    $transaction = Yii::$app->db->beginTransaction();
+                    try {
+                        if ($model->newone($post)) {
+                            $transaction->commit();
+                            Yii::$app->session->setFlash('newCommunity',$model->community_name);
+                            return $this->refresh();
+                        }
+                    }catch(\Exception $e){
+                        $transaction->rollback();
                     }
                 }
                 return $this->render('community',['model'=>$model,'witness'=>$witness]);

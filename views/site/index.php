@@ -10,14 +10,14 @@ $this->title = '主页-人恋人公益平台';
 <ul class="nav nav-pills" id="menu">
 </ul>
 <?php
-	echo password_hash('1569559335', PASSWORD_DEFAULT);
+	echo '今天：'.date('Y-m-d');
 	echo "<br>";
-	echo password_hash('1569559335', PASSWORD_DEFAULT);
+	echo '今天0点：'.strtotime(date('Y-m-d'));
 	echo "<br>";
-	echo md5(time().'23');
+	echo '那天：'.date('Y-m-d',1564783200);
+	$day = date('Y-m-d',1564783200);
 	echo "<br>";
-	echo md5(time().'23');
+	echo '那天0点：'.strtotime($day);
 	echo "<br>";
-	echo md5('231569567946');
-
+	echo 1564783200;
 ?>

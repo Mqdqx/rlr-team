@@ -98,6 +98,9 @@ class WitnessController extends Controller
      */
     public function actionWish()
     {
+        if (Yii::$app->user->identity->status == 3) {
+            return $this->render('wish');
+        }
         switch (Yii::$app->request->get('option')) {
             //未激活心愿和生成心愿码
             case 'noactivate':
@@ -105,19 +108,46 @@ class WitnessController extends Controller
                 break;
             //待审心愿
             case 'waiting':
-                
+                $models = Wish::find_Witness('waiting');
+                if (Yii::$app->request->get('wish_id')) {
+                    $model = Wish::findOne(['wish_id'=>Yii::$app->request->get('wish_id')]);
+                    if (Yii::$app->request->isPost) {
+                        $post = Yii::$app->request->post();
+                        if ($model->approve($post,Yii::$app->request->get('approve'))) {
+                            Yii::$app->session->setFlash('approved',$model->wish_id);
+                            return $this->redirect(['witness/wish','option'=>'waiting']);
+                        }
+                    }
+                    return $this->render('wish',['wish'=>$model]);
+                }
                 break;
             //已审心愿
             case 'approved':
-                $data = '已审心愿';
+                $models = Wish::find_Witness('approved');
+                break;
+            //待启动
+            case 'start':
+                $models = Wish::find_Witness('start');
+                if (Yii::$app->request->get('wish_id')) {
+                    $model = Wish::findOne(['wish_id'=>Yii::$app->request->get('wish_id')]);
+                    $model->scenario = 'start';
+                    if (Yii::$app->request->isPost) {
+                        $post = Yii::$app->request->post();
+                        if ($model->start($post)) {
+                            Yii::$app->session->setFlash('started',$model->wish_id.'启动成功！');
+                            return $this->redirect(['witness/wish','option'=>'start']);
+                        }
+                    }
+                    return $this->render('wish',['wish'=>$model]);
+                }
                 break;
             //资助周期中
             case 'supporting':
-                $data = '资助周期中';
+                $models = Wish::find_Witness('supporting');
                 break;
             //已完成心愿
             case 'finished':
-                $data = '已完成心愿';
+                $models = Wish::find_Witness('finished');
                 break;
             //其它传参抛出异常
             default:

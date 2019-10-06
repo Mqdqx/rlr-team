@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use app\models\Wish;
 
 class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
 {
@@ -207,6 +208,13 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
         return $status;
     }
 
+    /**
+     * 检测该用户是否有发布的心愿进行中
+     */
+    public function isWish()
+    {
+        return Wish::find()->where(['and','user_id ='.Yii::$app->user->identity->user_id,'status < 9'])->all();
+    }
 
     /**
      * 生成一个用于邮件链接激活账户的token

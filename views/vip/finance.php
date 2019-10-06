@@ -1,6 +1,6 @@
 <?php
 
-/*sponsor功能：个人钱包 流水 视图文件*/
+/*vip功能：个人钱包 流水 视图文件*/
 use yii\bootstrap\ActiveForm;
 use yii\helpers\Url;
 use yii\helpers\Html;
@@ -25,11 +25,11 @@ $this->params['breadcrumbs'][] = $this->title;
 			<h3><?= Html::encode($data) ?></h3>
 		</div>
 		<hr>
-		<h4>当前余额：<?=Html::a('￥1000.00', Url::to(['sponsor/finance']),['class' => 'btn btn-default btn-lg'])?>
-		<?=Html::a('充值', Url::to(['sponsor/finance']),['class' => 'btn btn-default'])?>
-		<?=Html::a('体现', Url::to(['sponsor/finance']),['class' => 'btn btn-default'])?></h4>
+		<h4>当前余额：<?=Html::a('￥'.Yii::$app->user->identity->balance, Url::to(['vip/finance']),['class' => 'btn btn-default btn-lg'])?>
+		<?=Html::a('充值', Url::to(['vip/finance']),['class' => 'btn btn-default'])?>
+		<?=Html::a('体现', Url::to(['vip/finance']),['class' => 'btn btn-default'])?></h4>
 		<hr>
-		<!-- 查询栏 -->
+		<!-- 查询栏 
 		<nav class="navbar navbar-default">
 			<div class="container-fluid"> 
 			<div class="navbar-header"><span class="navbar-brand">流水</span></div>
@@ -41,7 +41,7 @@ $this->params['breadcrumbs'][] = $this->title;
 			</form>
 			</div>
 		</nav>
-		<!-- 查询栏 -->
+		 查询栏 -->
 
 	</div>
 </div>

@@ -3,6 +3,7 @@
 /* @var $this view:witness/index应用中心 */
 
 use yii\helpers\Url;
+use yii\helpers\Html;
 
 $this->title = '应用中心-见证人';
 $this->params['breadcrumbs'][] = $this->title;
@@ -27,6 +28,17 @@ $this->params['breadcrumbs'][] = $this->title;
 				<p>如已邮寄，请耐心等待我们开放功能权限，我们会尽快通知您！</p>
 			</div>
 		<?php endif?>
-		<h1>默认页：各信息总览....</h1>
+		<div class="row placeholders">
+            <div class="col-xs-6 col-sm-3 placeholder">
+            <h4>
+            	<?= Html::a('承诺书模版下载', Yii::$app->request->baseUrl.'/file/承诺书模版.docx',['class' => 'btn btn-info', 'name' => 'view-button']) ?>
+            </h4>
+            </div>
+            <div class="col-xs-6 col-sm-3 placeholder">
+            <h4>
+            	<?= Html::a('心愿协议模板下载', Yii::$app->request->baseUrl.'/file/人恋人心愿协议模板.doc',['class' => 'btn btn-info', 'name' => 'view-button']) ?>
+            </h4>
+            </div>
+        </div>
 	</div>
 </div>

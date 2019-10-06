@@ -11,6 +11,7 @@ use app\models\User;
  * @property int $community_id 社区主键ID
  * @property int $createtime 社区创建时间戳
  * @property int $user_id 关联的主见证人账号ID
+ * @property int $minpercent 资助者资助时对应心愿的最小余额比
  * @property string $community_name 社区名称：学院/学校
  * @property string $remarks 社区备注/介绍/描述
  * @property int $status 状态：1->正常使用，0->冻结状态
@@ -34,9 +35,13 @@ class Community extends \yii\db\ActiveRecord
             [['community_id','community_name','user_id'],'required','on'=>['newone']],
             ['community_id','integer','on'=>['newone']],
             [['community_id'], 'unique','on'=>['newone']],
+            [['community_name'], 'unique','on'=>['newone']],
+            ['minpercent','integer','on'=>['newone']],
+            ['minpercent', 'compare', 'compareValue' => 100, 'operator' => '<=', 'on'=>['newone']],
+            
             //save 或 update 规则，gii生成定义的
             [['community_id'], 'required'],
-            [['community_id', 'createtime', 'user_id', 'status'], 'integer'],
+            [['community_id', 'createtime', 'user_id', 'status', 'minpercent'], 'integer'],
             [['community_name', 'remarks'], 'string', 'max' => 255],
             [['community_id'], 'unique'],
         ];
@@ -69,6 +74,8 @@ class Community extends \yii\db\ActiveRecord
             $user->status = 1;
             if ($this->save() && $user->save()) {
                 return true;
+            } else {
+                throw new \Exception();
             }
         }
         return false;

@@ -1,15 +1,4 @@
 数据库测试数据：
 user:{
 	admin:{i am admin,15989119518,972436798@qq.com,123456}
-
-	witness:{one witness,10000000100,10000000100@rlr.com,123456($2y$10$v1VPFJDMRoOE7SuetyHlQuB9Wyx9kdizLWOOurW8LXHDwV.USynty)}
-	witness:{two witness,10000000200,10000000200@rlr.com,123456}
-
-	vip:{one,10000000001,10000000001@rlr.com,123456}
-	vip:{two,10000000002,10000000002@rlr.com,123456}
-	vip:{three,10000000003,10000000003@rlr.com,123456}
-	vip:{four,10000000004,10000000004@rlr.com,123456}
-	vip:{five,10000000005,10000000005@rlr.com,123456}
-	vip:{six,10000000006,10000000006@rlr.com,123456}
-
 }

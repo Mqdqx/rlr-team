@@ -11,7 +11,7 @@ use Yii;
  * @property int $createtime 团体创建时间戳
  * @property int $user_id 创建者的user_id
  * @property int $status 团体状态：0->冻结，1->正常运行状态，2->创建审核中状态
- * @property string $money 团体实时余额，两位小数
+ * @property string $balance 团体实时余额，两位小数
  * @property string $name 团体名称：班级名称
  * @property int $community_id 隶属社区id
  */
@@ -32,7 +32,7 @@ class Team extends \yii\db\ActiveRecord
     {
         return [
             [['createtime', 'user_id', 'status', 'community_id'], 'integer'],
-            [['money'], 'number'],
+            [['balance'], 'number'],
             [['name'], 'string', 'max' => 255],
         ];
     }
@@ -47,9 +47,30 @@ class Team extends \yii\db\ActiveRecord
             'createtime' => '团体创建时间戳',
             'user_id' => '创建者的user_id',
             'status' => '团体状态：0->冻结，1->正常运行状态，2->创建审核中状态',
-            'money' => '团体实时余额，两位小数',
+            'balance' => '团体实时余额，两位小数',
             'name' => '团体名称：班级名称',
             'community_id' => '隶属社区id',
         ];
+    }
+
+    /**
+     * 返回team_ID
+     */
+    public function getId()
+    {
+        return $this->team_id;
+    }
+
+    /**
+     * 返回 ___邮箱地址
+     */
+    public function getEmail()
+    {
+        return 'classMaster@rlr.com';
+    }
+
+    public function getRole()
+    {
+        return 'team';
     }
 }

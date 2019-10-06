@@ -44,6 +44,7 @@ $this->params['breadcrumbs'][] = $this->title;
 		?>
 		<?=$form->field($model,'community_name')->textInput(['placeholder'=>'请输入社区名称'])->label('社区名称') ?>
 		<?=$form->field($model,'community_id')->textInput(['placeholder'=>'请定义社区编号'])->label('社区编号') ?>
+		<?=$form->field($model,'minpercent')->textInput(['placeholder'=>'请定义社区资助最小余额比'])->label('最小余额比(%)') ?>
 		<?=$form->field($model,'user_id')->dropdownList($witness,['prompt'=>'请选择待审核见证人'])->label('关联见证人') ?>
 		<?=$form->field($model,'remarks')->textarea(['rows'=>6,'placeholder'=>'选填，请勿超过200字'])->label('备注信息') ?>
 
