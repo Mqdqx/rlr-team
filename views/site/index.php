@@ -20,4 +20,16 @@ $this->title = '主页-人恋人公益平台';
 	echo '那天0点：'.strtotime($day);
 	echo "<br>";
 	echo 1564783200;
+	echo '<br>';
+	if (!'') {
+		echo 'kong';
+	}
+	echo '<hr>';
+?>
+<?php
+
+$sid = session_id();
+
+print($sid."\n");
+
 ?>

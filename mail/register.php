@@ -3,7 +3,7 @@
 <p>人恋人平台欢迎您，您已成功注册，请点击以下链接激活账号！</p>
 
 <?php $url = Yii::$app->urlManager->createAbsoluteUrl(['site/useractivate','email' => $email,'token'=>$token]); ?>
-<p><a href="<?php echo $url; ?>"><?php echo $url; ?></a></p>
+<p><a href="<?php echo $url; ?>">__点击激活__</a></p>
 
 <p>首次激活后即可使用以下信息登录，请妥善保管！</p>
 

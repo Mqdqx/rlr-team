@@ -74,7 +74,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
 							<?php if($model->start_time !== 0): ?>
 							<dt>启动时间：</dt><dd><?=$model->getTime($model->start_time) ?></dd>
-							<dt>已资助期数：</dt><dd><?=$model->$model->transfered ?></dd>
+							<dt>已资助期数：</dt><dd><?=$model->transfered ?></dd>
 							<?php endif; ?>
 
 							<?php if($model->end_time !== 0): ?>

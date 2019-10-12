@@ -25,7 +25,7 @@ $this->params['breadcrumbs'][] = $this->title;
 			<h3><?= Html::encode($data) ?></h3>
 		</div>
 		<hr>
-		<h4>当前余额：<?=Html::a('￥'.Yii::$app->user->identity->balance, Url::to(['vip/finance']),['class' => 'btn btn-default btn-lg'])?>
+		<h4>当前余额：<?=Html::a('￥'.Yii::$app->user->identity->balance, Yii::$app->request->getAbsoluteUrl(),['class' => 'btn btn-default btn-lg'])?>
 		<?=Html::a('充值', Url::to(['vip/finance']),['class' => 'btn btn-default'])?>
 		<?=Html::a('体现', Url::to(['vip/finance']),['class' => 'btn btn-default'])?></h4>
 		<hr>

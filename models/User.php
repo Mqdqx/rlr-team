@@ -4,6 +4,7 @@ namespace app\models;
 
 use Yii;
 use app\models\Wish;
+use app\models\Team;
 
 class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
 {
@@ -39,13 +40,12 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             ['email','required','message'=>'邮箱地址不能为空！','on'=>['register']],
             ['email', 'email','message' => '邮箱地址格式不正确！', 'on'=>['register']],
             ['email', 'unique','message'=>'该邮箱地址已注册，请登录或激活！！','on'=>['register']],
-            ['password','required','message'=>'密码不能为空！','on'=>['register']],
-            ['repassword','required','message'=>'重复密码不能为空！','on'=>['register']],
-            ['repassword', 'compare', 'compareAttribute'=>'password','message'=>'两次密码输入不一致','on'=>['register']],
-            ['agree', 'boolean','on'=>['register']],
-            ['agree','compare','compareValue'=>true, 'operator'=>'==','message'=>'必须同意协议方可注册','on'=>['register']],
+            ['password','required','message'=>'密码不能为空！','on'=>['register','invitation']],
+            ['repassword','required','message'=>'重复密码不能为空！','on'=>['register','invitation']],
+            ['repassword', 'compare', 'compareAttribute'=>'password','message'=>'两次密码输入不一致','on'=>['register','invitation']],
+            ['agree', 'boolean','on'=>['register','invitation']],
+            ['agree','compare','compareValue'=>true, 'operator'=>'==','message'=>'必须同意协议方可注册','on'=>['register','invitation']],
             //默认验证规则
-            [['number', 'email'], 'required'],
             [['number', 'createtime', 'logintime', 'status', 'version'], 'integer'],
             [['balance'], 'number'],
             [['email', 'password', 'token', 'image', 'idcardfront', 'idcardback', 'alipay', 'wechat', 'address', 'company'], 'string', 'max' => 100],
@@ -78,7 +78,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             'createtime' => '创建时间戳',
             'logintime' => '最后一次登录时间',
             'loginip' => '最后一次登录IP地址',
-            'status' => '当前状态：0->冻结无法登入状态，1->正常使用状态，2->资料待完善状态，3->完善资料待审核状态，4->未激活阻止登录状态',
+            'status' => '当前状态：0->冻结无法登入状态，1->正常使用状态，2->资料待完善状态，3->完善资料待审核状态，4->未激活阻止登录状态，5->受邀未注册',
             'token' => '注册邮件链接激活参数token',
             'role' => '身份：超级管理员admin,资助者sponsor,在校学生student,见证人/社区管理者witness',
             'truename' => '真实姓名',
@@ -184,8 +184,8 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
                 $status = $this->truename=='' ? $status.'真实姓名，' : $status;
                 $status = $this->alipay=='' ? $status.'支付宝收款账号，' : $status;
                 break;
-            case '':
-                
+            case 'message':
+                $status = $this->username=='' ? '昵称，' : $status;
                 break;
             case 'all':
                 $status = $this->number==0 ? '手机号码，' : '';
@@ -242,13 +242,28 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     }
 
     /**
+     * 一对多 关联 | Team 表
+     */
+    public function getTeams()
+    {
+        return $this->hasMany(Team::className(),['team_id'=>'team_id'])->viaTable('user_team',['user_id'=>'user_id']);
+    }
+
+    /**
+     * 验证 getMember() 返回的 对象 遍历是显示是否为创建者
+     */
+    public function isCreator()
+    {
+        return ($this->user_id == Yii::$app->session->get('team')->user_id) ? 'success' : '';
+    }
+
+    /**
      * 通过传入角色参数并且在验证表单数据后
      * 发生一封邮件给注册者
      */
     public function register($role,$data)
     {
         //指定验证场景，必须先指定验证场景再load数据
-        $this->scenario = "register";
         if ($this->load($data) && $this->validate()) {
             $token = $this->createToken();
             $mailer = Yii::$app->mailer->compose('register',['email'=>$this->email,'token'=>$token]);
@@ -265,6 +280,23 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             if ($mailer->send() && $this->save()) {
                 return true;
             }
+        }
+        return false;
+    }
+
+    /**
+     * 受邀请者 注册激活 入驻平台
+     */
+    public function invitation($data)
+    {
+        if ($this->load($data) && $this->validate()) {
+            $this->password = password_hash($this->password, PASSWORD_DEFAULT);
+            //用于后续save时保证可以通关验证
+            $this->repassword = $this->password;
+            $this->status = 1;
+            $this->loginip = $this->getIp();
+            $this->logintime = time();
+            return (bool)$this->save();
         }
         return false;
     }

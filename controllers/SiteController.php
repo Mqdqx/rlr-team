@@ -8,9 +8,12 @@ use yii\web\NotFoundHttpException;
 use yii\web\Controller;
 use yii\web\Response;
 use yii\filters\VerbFilter;
+use yii\data\Pagination;
 use app\models\LoginForm;
 use app\models\ContactForm;
 use app\models\User;
+use app\models\Message;
+use app\models\TeamMessage;
 
 class SiteController extends Controller
 {
@@ -95,10 +98,13 @@ class SiteController extends Controller
             Yii::$app->user->identity->logintime = time();
             Yii::$app->user->identity->loginip = $model->getIp();
             Yii::$app->user->identity->save();
-            if (Yii::$app->user->identity->status == 4) {
+            if (Yii::$app->user->identity->status == 4 || Yii::$app->user->identity->status == 5) {
                 Yii::$app->user->logout();
                 Yii::$app->session->setFlash('noActivate');
                 return $this->render('error');
+            }
+            if (Yii::$app->request->get('option') == 'jointeam') {
+                return $this->redirect(['site/message','option'=>'handle','message_id'=>Yii::$app->request->get('message_id')]);
             }
             //跳转到各种用户（角色）的应用中心（控制器）
             return $this->redirect([Yii::$app->user->identity->role.'/index']);
@@ -162,6 +168,7 @@ class SiteController extends Controller
     {
         $model = new User;
         //如有post提交，调用模型处理数据(库)
+        $model->scenario = "register";
         if (Yii::$app->request->isPost) {
             $post = Yii::$app->request->post();
             if ($model->register('vip',$post)) {
@@ -182,6 +189,7 @@ class SiteController extends Controller
     {
         $model = new User;
         //如有post提交，调用模型处理数据(库)
+        $model->scenario = "register";
         if (Yii::$app->request->isPost) {
             $post = Yii::$app->request->post();
             if ($model->register('witness',$post)) {
@@ -205,24 +213,64 @@ class SiteController extends Controller
         switch (Yii::$app->request->get('option')) {
             //收件箱
             case 'receive':
-                $data = '收件箱信息';
-                return $this->render('message',['data'=>$data]);
+                $models = Message::find()->where(['to'=>Yii::$app->user->identity->user_id])->orderBy(['sendtime'=>SORT_DESC]);
                 break;
             //已发信息
             case 'sent':
-                $data = '已发送的信息';
-                return $this->render('message',['data'=>$data]);
+                $models = Message::find()->where(['from'=>Yii::$app->user->identity->user_id])->orderBy(['sendtime'=>SORT_DESC]);
                 break;
             //发送信息
             case 'send':
-                $data = '发送信息';
-                return $this->render('message',['data'=>$data]);
+                $model = new Message();
+                $model->scenario = 'send';
+                if (Yii::$app->request->isPost) {
+                    $post = Yii::$app->request->post();
+                    if ($model->send($post)) {
+                        Yii::$app->session->setFlash('send');
+                        return $this->refresh();
+                    }
+                }
+                return $this->render('message',['model'=>$model]);
+                break;
+            //标记已经读
+            case 'read':
+                $message_id = Yii::$app->request->get('message_id');
+                $message = Message::findOne(['message_id'=>$message_id,'to'=>Yii::$app->user->identity->user_id]);
+                if (!$message) {
+                    throw new NotFoundHttpException("警告！越权操作！");
+                }
+                $message->status = ($message->status == 1) ? 2 : 1;
+                if ($message->save()) {
+                    return $this->redirect(['site/message','option'=>'receive']);
+                }
+                break;
+            //处理一条邀请信息
+            case 'handle':
+                $message_id = Yii::$app->request->get('message_id');
+                $message = Message::findOne(['message_id'=>$message_id,'to'=>Yii::$app->user->identity->user_id]);
+                if (!$message) {  //过滤篡改GET
+                    throw new NotFoundHttpException("警告！越权操作！");
+                }
+                if (Yii::$app->request->get('decision') == 'agree' || Yii::$app->request->get('decision') == 'reject') {
+                    if ($message->status !== 0) {
+                        throw new NotFoundHttpException("警告！越权操作！");
+                    }
+                    if(!$message->decide(Yii::$app->request->get('decision'))) {
+                        throw new NotFoundHttpException("服务器错误，请稍后再试或反馈此问题！");
+                    }
+                }
+                return $this->render('message',['message'=>$message]);
                 break;
             //其它传参抛出异常
             default:
                 throw new NotFoundHttpException("警告！越权操作！");
                 break;
         }
+        $count = $models->count();
+        $pageSize = Yii::$app->params['pageSize'];
+        $pager = new Pagination(['totalCount'=>$count,'pageSize'=>$pageSize]);
+        $models = $models->offset($pager->offset)->limit($pager->limit)->all(); //分页处理
+        return $this->render('message',['models'=>$models,'pager'=>$pager]);
     }
 
     /**
@@ -254,7 +302,7 @@ class SiteController extends Controller
     }
 
     /**
-     * 用于注册后激活账号：vip/community
+     * 用于注册后激活账号：vip或community
      */
     public function actionUseractivate()
     {
@@ -263,7 +311,7 @@ class SiteController extends Controller
         $token = Yii::$app->request->get('token');
         $user = User::findOne(['email'=>$email,'token'=>$token]);
         if (!$user) {
-            throw new NotFoundHttpException("警告！伪造请求！你的信息已经记录！");
+            throw new NotFoundHttpException("无效访问！");
         }
         if ($user->status !== 4) {
             throw new NotFoundHttpException("该账号已经激活，请勿重复操作！");
@@ -279,6 +327,63 @@ class SiteController extends Controller
             Yii::$app->session->setFlash('activated');
             return $this->render('error');
         }
+    }
+
+    /**
+     * 用于受邀请后注册激活账号：vip
+     */
+    public function actionUserregister()
+    {
+        $email = Yii::$app->request->get('email');
+        $token = Yii::$app->request->get('token');
+        $user = User::findOne(['email'=>$email,'token'=>$token]);
+        if (!$user) {
+            throw new NotFoundHttpException("无效访问！");
+        }
+        if ($user->status !==5) {
+            throw new NotFoundHttpException("该账号已经注册激活，请勿重复操作！");
+        }
+        if (!Yii::$app->user->isGuest) {
+            Yii::$app->user->logout();
+        }
+        $user->scenario = 'invitation';
+        if (Yii::$app->request->isPost) {
+            $post = Yii::$app->request->post();
+            if ($user->invitation($post)) {
+                Yii::$app->user->login($user,3600*24*30);
+                Yii::$app->session->setFlash('activated');
+                return $this->render('error');
+            }
+        }
+        return $this->render('invitation',['model'=>$user]);
+    }
+
+    /**
+     * 用于 用户 收到平台(代)发的邮件后 点击链接挑战到对应的操作活动
+     */
+    public function actionJump()
+    {
+        switch (Yii::$app->request->get('option')) {
+            case 'jointeam':
+                $team_message_id = Yii::$app->request->get('team_message_id');
+                $teamMessage = TeamMessage::findOne(['id'=>$team_message_id]);
+                if (!$teamMessage) {
+                    throw new NotFoundHttpException("无效访问！");
+                }
+                if (!Yii::$app->user->isGuest) {  //如果处于已经登录状态
+                    if (Yii::$app->user->identity->user_id == $teamMessage->message->toUser->user_id) {
+                        return $this->redirect(['site/message','option'=>'handle','message_id'=>$teamMessage->message->message_id]);
+                    }
+                    Yii::$app->user->logout();//如果当前登录的用户非链接跳转来的用户，则注销
+                }
+                return $this->redirect(['site/login','option'=>'jointeam','message_id'=>$teamMessage->message->message_id]);
+                break;
+            
+            default:
+                throw new NotFoundHttpException("未知错误");
+                break;
+        }
+
     }
 
 }

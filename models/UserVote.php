@@ -7,11 +7,12 @@ use Yii;
 /**
  * This is the model class for table "user_vote".
  *
+ * @property int $id 主键ID
  * @property int $user_id 投票者user_id
  * @property int $vote_id 所参与此次投票活动的ID
  * @property int $vote_res_id 投给某个候选者的ID
  */
-class UserVote extends \yii\db\ActiveRecord
+class UserTeam extends \yii\db\ActiveRecord
 {
     /**
      * {@inheritdoc}
@@ -27,9 +28,7 @@ class UserVote extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['user_id'], 'required'],
             [['user_id', 'vote_id', 'vote_res_id'], 'integer'],
-            [['user_id'], 'unique'],
         ];
     }
 
@@ -39,9 +38,10 @@ class UserVote extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'user_id' => '投票者user_id',
-            'vote_id' => '所参与此次投票活动的ID',
-            'vote_res_id' => '投给某个候选者的ID',
+            'id' => 'ID',
+            'user_id' => 'User ID',
+            'vote_id' => 'Vote ID',
+            'vote_res_id' => 'Vote Res ID',
         ];
     }
 }
