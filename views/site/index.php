@@ -21,9 +21,9 @@ $this->title = '主页-人恋人公益平台';
 	echo "<br>";
 	echo 1564783200;
 	echo '<br>';
-	if (!'') {
-		echo 'kong';
-	}
+
+	echo '<hr>';
+	echo date('YmdHis').mt_rand(100,999);
 	echo '<hr>';
 ?>
 <?php
@@ -31,5 +31,6 @@ $this->title = '主页-人恋人公益平台';
 $sid = session_id();
 
 print($sid."\n");
+echo '<hr>';
 
 ?>

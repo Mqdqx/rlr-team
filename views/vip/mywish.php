@@ -52,7 +52,7 @@ $this->params['breadcrumbs'][] = $this->title;
 							<dt>当前状态：</dt><dd><?=$model->status() ?></dd>
 							<dt>发布者：</dt><dd><?=$model->getTruename() ?></dd>
 							<dt>总期望金额：</dt><dd><?=$model->money ?></dd>
-							<dt>资助周期</dt><dd><?=$model->month ?></dd>
+							<dt>资助周期：</dt><dd><?=$model->month ?></dd>
 							<dt>类别：</dt><dd><?=$model->showLabel() ?></dd>
 							<dt>原因描述：</dt><dd><?=Html::encode($model->description) ?></dd>
 							<dt>审核员：</dt><dd><?=$model->getUsername('verify') ?></dd>
@@ -68,8 +68,8 @@ $this->params['breadcrumbs'][] = $this->title;
 							<?php endif; ?>
 
 							<?php if($model->locking_team_id !== 0): ?>
-							<dt>资助团队：</dt><dd><?=$model->getUsername('team') ?></dd>
-							<dt>资助时间：</dt><dd><?=$model->getTime($model->locking_time) ?></dd>
+							<dt>资助团队：</dt><dd><?=$model->getUsername('sponsor') ?></dd>
+							<dt>绑定时间：</dt><dd><?=$model->getTime($model->locking_time) ?></dd>
 							<?php endif; ?>
 
 							<?php if($model->start_time !== 0): ?>

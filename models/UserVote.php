@@ -10,9 +10,9 @@ use Yii;
  * @property int $id 主键ID
  * @property int $user_id 投票者user_id
  * @property int $vote_id 所参与此次投票活动的ID
- * @property int $vote_res_id 投给某个候选者的ID
+ * @property int $wish_id 投给某个候选者的ID
  */
-class UserTeam extends \yii\db\ActiveRecord
+class UserVote extends \yii\db\ActiveRecord
 {
     /**
      * {@inheritdoc}
@@ -28,7 +28,7 @@ class UserTeam extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['user_id', 'vote_id', 'vote_res_id'], 'integer'],
+            [['user_id', 'vote_id', 'wish_id'], 'integer'],
         ];
     }
 
@@ -41,7 +41,7 @@ class UserTeam extends \yii\db\ActiveRecord
             'id' => 'ID',
             'user_id' => 'User ID',
             'vote_id' => 'Vote ID',
-            'vote_res_id' => 'Vote Res ID',
+            'wish_id' => 'Wish ID',
         ];
     }
 }

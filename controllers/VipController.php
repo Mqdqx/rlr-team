@@ -77,13 +77,64 @@ class VipController extends Controller
     }
     
     /**
-     * 个人钱包流水功能:充值，体现，查询流水
+     * 个人钱包流水功能:充值，体现，查询
      */
     public function actionFinance()
     {
-        //
-        $data = '钱包流水';
-        return $this->render('finance',['data'=>$data]);
+        $models = Flows::find()->where(['or',['and','in_id='.Yii::$app->user->identity->user_id,'in_role="vipPurse"'],['and','out_id='.Yii::$app->user->identity->user_id,'out_role="vipPurse"']])->orderBy(['createtime'=>SORT_DESC]);
+        $count = $models->count();
+        $pageSize = Yii::$app->params['pageSize'];
+        $pager = new Pagination(['totalCount'=>$count,'pageSize'=>$pageSize]);
+        $models = $models->offset($pager->offset)->limit($pager->limit)->all(); //分页处理
+        switch (Yii::$app->request->get('option')) {
+            //流水
+            case 'flows':
+
+                return $this->render('finance',['models'=>$models,'pager'=>$pager]);
+                break;
+            //充值
+            case 'recharge':
+                $model = new Flows();
+                $model->scenario = "recharge";
+                if (Yii::$app->request->isPost) {
+                    $post = Yii::$app->request->post();
+                    $trade = $model->rechargeAlipay($post);
+                    if (!$trade) {
+                        Yii::$app->session->setFlash('rechargeFail');
+                    } else {
+                        //接入支付宝 SDK
+                        require_once './../vendor/alipay/config.php';
+                        require_once './../vendor/alipay/pagepay/service/AlipayTradeService.php';
+                        require_once './../vendor/alipay/pagepay/buildermodel/AlipayTradePagePayContentBuilder.php';
+                        $out_trade_no = trim($trade->out_trade_no);//商户订单号，商户网站订单系统中唯一订单号，必填
+                        $subject = '用户充值';//订单名称，必填
+                        $total_amount = trim($trade->money);//付款金额，必填
+                        $body = Yii::$app->user->identity->email.'支付宝充值';//商品描述，可空
+                        //构造参数
+                        $payRequestBuilder = new \AlipayTradePagePayContentBuilder();
+                        $payRequestBuilder->setBody($body);
+                        $payRequestBuilder->setSubject($subject);
+                        $payRequestBuilder->setTotalAmount($total_amount);
+                        $payRequestBuilder->setOutTradeNo($out_trade_no);
+                        //发起支付宝交易
+                        $aop = new \AlipayTradeService($config);
+                        $response = $aop->pagePay($payRequestBuilder,$config['return_url'],$config['notify_url']);
+                        var_dump($response);
+                        exit();
+                        //接入结束
+                    }
+                }
+                return $this->render('finance',['models'=>$models,'pager'=>$pager,'model'=>$model]);
+                break;
+            //提现
+            case 'withdraw':
+                
+                return $this->render('finance',['models'=>$models,'pager'=>$pager]);
+                break;
+            default:
+                throw new NotFoundHttpException("警告！越权操作！");
+                break;
+        }        
     }
 
     /**
@@ -96,11 +147,12 @@ class VipController extends Controller
         $pageSize = Yii::$app->params['pageSize'];
         $pager = new Pagination(['totalCount'=>$count,'pageSize'=>$pageSize]);
         $models = $models->offset($pager->offset)->limit($pager->limit)->all(); //分页处理
-        return $this->render('support',['models'=>$models]);
+        return $this->render('support',['models'=>$models,'pager'=>$pager]);
     }
 
     /**
      * 资助者身份：查看对应范围(社区)学生发布且已审核的心愿
+     * 操作：资助(绑定) 一个心愿
      */
     public function actionWish()
     {
@@ -108,6 +160,8 @@ class VipController extends Controller
             $wish = Wish::findOne(['wish_id'=>Yii::$app->request->get('wish_id')]);
             if ($wish->minbalance > Yii::$app->user->identity->balance) {
                 Yii::$app->session->setFlash('support','您当前余额小于该心愿期望值的最小余额比！无法资助心愿'.$wish->wish_id);
+            } elseif ($wish->status !== 2) { // 验证数据是否过期
+                Yii::$app->session->setFlash('support','心愿编号：'.$wish->wish_id.'已被其它用户抢先资助了，请重新选择！');
             } else {
                 $transaction = Yii::$app->db->beginTransaction();
                 try {

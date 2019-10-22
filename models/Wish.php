@@ -9,6 +9,7 @@ use app\models\Community;
 use app\models\Team;
 use app\models\Flows;
 use app\models\WishFlows;
+use app\models\VoteRes;
 
 /**
  * This is the model class for table "wish".
@@ -96,24 +97,24 @@ class Wish extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'wish_id' => '心愿主键ID',
-            'user_id' => '所属用户的user_id',
+            'wish_id' => '心愿编号',
+            'user_id' => '所属用户',
             'token' => '心愿码',
-            'tokentime' => '产生心愿码时间戳',
-            'money' => '期望金额',
-            'month' => '资助周期',
-            'label' => '标签：0->其它，1->灾祸，2->单亲，3->孤儿and so on....',
-            'per' => '每一期期望金额',
-            'filepath' => '上传补充文件路径',
+            'tokentime' => '产生心愿码时间',
+            'money' => '期望金额(￥)',
+            'month' => '资助周期(单位：30天)',
+            'label' => '标签',
+            'per' => '每期金额',
+            'filepath' => '协议',
             'description' => '描述/原因',
             'verify_res' => '审核批注',
-            'verify_user_id' => '审核员/见证人/社区管理员(witness)的user_id',
-            'verify_time' => '审核时间戳',
-            'publish_time' => '发布心愿时间戳',
-            'start_time' => '启动周期时间戳',
-            'end_time' => '整个心愿完成结束时间戳',
+            'verify_user_id' => '见证人',
+            'verify_time' => '审核时间',
+            'publish_time' => '发布心愿时间',
+            'start_time' => '启动周期时间',
+            'end_time' => '心愿完成时间间',
             'status' => '当前状态',
-            'locking_time' => '锁定时间戳',
+            'locking_time' => '锁定时间',
             'locking_user_id' => '锁定的对象id：资助人id',
             'locking_team_id' => '锁定的对象id：团体id',
             'vision' => '版本号（乐观锁）',
@@ -153,6 +154,19 @@ class Wish extends \yii\db\ActiveRecord
     }
 
     /**
+     * 判断是否暂时 入选 了团体投票活动
+     */
+    public function isCandidate()
+    {
+        foreach (Yii::$app->session->get('team')->_vote->vote_wish as $key => $wish) {
+            if ($wish->wish_id == $this->wish_id) {
+                return ['text'=>'移除入选','class'=>'btn btn-warning'];
+            }
+        }
+        return ['text'=>'入选投票','class'=>'btn btn-info'];
+    }
+
+    /**
      * 转译心愿当前状态用于前台表格行的颜色
      */
     public function color()
@@ -174,7 +188,7 @@ class Wish extends \yii\db\ActiveRecord
                 $color = 'danger';
                 break;
             default:
-                $color = '';
+                $color = 'active';
                 break;
         }
         return $color;
@@ -197,6 +211,15 @@ class Wish extends \yii\db\ActiveRecord
                 break;
             case '3':
                 $status = '待启动';
+                break;
+            case '4':
+                $status = '个人资助中';
+                break;
+            case '6':
+                $status = '团体资助中';
+                break;
+            case '7':
+                $status = '团体投票中';
                 break;
             case '9':
                 $status = '审核驳回';
@@ -283,6 +306,14 @@ class Wish extends \yii\db\ActiveRecord
     public function getMinbalance()
     {
         return $this->community->minpercent * 0.01 * $this->money;
+    }
+
+    /**
+     * 穿透投票活动vote_id 返回该心愿在这次投票活动中实时的所得票数
+     */
+    public function getVoteRes($vote_id)
+    {
+        return VoteRes::findOne(['vote_id'=>$vote_id,'wish_id'=>$this->wish_id]);
     }
 
     /**
@@ -373,7 +404,7 @@ class Wish extends \yii\db\ActiveRecord
 
     /**
      * witness见证人启动心愿
-     * 设计到文件上传
+     * 涉及到文件上传
      */
     public function start($data)
     {
@@ -393,6 +424,7 @@ class Wish extends \yii\db\ActiveRecord
     }
 
     /**
+     * 定时任务接口
      * 计划每天运行一次的定时任务
      * 心愿转账和邮件提醒
      */
@@ -401,11 +433,10 @@ class Wish extends \yii\db\ActiveRecord
         $models = self::find()->where(['or','status=4','status=6'])->all();
         
         foreach ($models as $key => $model) {
-            //$status : 当前时间周期第几区间，若为整型，则位于 端点日
-            $status = (strtotime(date('Y-m-d')) - $model->getStartday()) / 2678400;
-            $status = ($status >= $model->month) ? $model->month : $status;//最后端点日
-            $_status = $status - $model->transfered;//$_status浮点数或整型(端点日/最后端点日) ， 为 当前 欠 多少期，最高为 总期数,
-
+            //$status : 当前时间下 周期处于第几区间，若为整型，则位于 端点日
+            $status = (strtotime(date('Y-m-d')) - $model->getStartday()) / 2678400; 
+            $status = ($status >= $model->month) ? $model->month : $status;//如果超过最后一个端点日，则取其
+            $_status = $status - $model->transfered;//$_status浮点数或整型(若为整型则此天为端点日/最后端点日) ， 为 当前 欠 多少期，最高为 总期数,
             if ($_status < 1) {
                 continue;
             }
@@ -427,7 +458,9 @@ class Wish extends \yii\db\ActiveRecord
     }
 
     /**
-     * 处理资助周期到达转账节点时的操作
+     * 由 每天执行一次的定时任务 接口 调用
+     * 处理 状态为 资助周期中 且有欠转账期数 的心愿
+     * $number 所欠转账期数 | $wish 心愿对象
      */
     public static function handleTransfer($number,$wish)
     {
@@ -466,6 +499,7 @@ class Wish extends \yii\db\ActiveRecord
                     self::$CrontabRes[$wish->wish_id]['success'] ++ ;
                 } catch (\Exception $e) {
                     $transaction->rollback();
+                    echo $e."\n";
                     self::$CrontabRes[$wish->wish_id]['error'] ++ ;
                 }
             }
@@ -478,16 +512,17 @@ class Wish extends \yii\db\ActiveRecord
     }
 
     /**
+     * 发邮件提醒
      * @sponsor,资助者
-     * @res,转账任务结果哦
+     * @res,转账任务结果
      */
     public static function emailTransferRes($sponsor,$res)
     {
         if ($res['success'] !== 0) {
-            echo "succeed send".$res['success']."number \n";
+            echo "succeed send".$res['success']."\n";
         }
         if ($res['insufficient'] !== 0) {
-            echo "balance not enough ".$res['insufficient']." number \n";
+            echo "balance not enough ".$res['insufficient']."\n";
         }
         return 1;
     }
@@ -510,6 +545,6 @@ class Wish extends \yii\db\ActiveRecord
      */
     public function getUser()
     {
-        return User::findOne(['user_id'=>$this->user_id]);
+        return $this->hasOne(User::className(),['user_id'=>'user_id']);
     }
 }

@@ -123,6 +123,8 @@ class WitnessController extends Controller
                 break;
             //已审心愿
             case 'approved':
+                //推广
+                //删除
                 $models = Wish::find_Witness('approved');
                 break;
             //待启动

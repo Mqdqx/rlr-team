@@ -4,6 +4,7 @@ namespace app\models;
 
 use Yii;
 use app\models\User;
+use app\models\Vote;
 use app\models\UserTeam;
 
 /**
@@ -18,6 +19,11 @@ use app\models\UserTeam;
  */
 class Team extends \yii\db\ActiveRecord
 {
+    /**
+     * 定义 临时量，可能存于session 使用
+     */
+    public $_vote;
+
     /**
      * {@inheritdoc}
      */
@@ -95,6 +101,14 @@ class Team extends \yii\db\ActiveRecord
     public function getMember()
     {
         return $this->hasMany(User::className(),['user_id'=>'user_id'])->viaTable('user_team',['team_id'=>'team_id']);
+    }
+
+    /**
+     * 关联一对多的 投票表 | Vote 对象
+     */
+    public function getVotes()
+    {
+        return $this->hasMany(Vote::className(),['team_id'=>'team_id']);
     }
 
     /**

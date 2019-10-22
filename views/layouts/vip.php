@@ -39,6 +39,7 @@ AppAsset::register($this);
     echo Nav::widget([
         'options' => ['class' => 'navbar-nav navbar-right'],
         'items' => [
+            ['label' => Yii::$app->user->identity->username, 'url'=>['/site/personalinfo','option'=>'see']],
             ['label' => '主页', 'url' => ['/site/index']],
             ['label' => '关于', 'url' => ['/site/about']],
             ['label' => '团体', 'url' => ['/team/index']],

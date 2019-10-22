@@ -174,11 +174,11 @@ $this->params['breadcrumbs'][] = $this->title;
 					<td><?=$model->getUsername('wish') ?></td>
 					<td><?=$model->status() ?></td>
 					<td><?php if($model->status == 2): ?>
-						<?=Html::a('启动',Url::to([
+						<?=Html::a('推广',Url::to([
 							'witness/wish',
 							'option'=>'approved',
 							'wish_id'=>$model->wish_id,
-							'operate'=>'start'
+							'operate'=>'spread'
 						]),['class'=>'btn btn-success btn-xs']) ?>
 						<?php elseif($model->status == 9): ?>
 						<?=Html::a('删除',Url::to([

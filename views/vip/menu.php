@@ -12,7 +12,7 @@ use yii\helpers\Url;
 	<ul class="nav nav-pills nav-stacked" id="menu">
 		<li role="presentation"><a href=<?=Url::to(['site/personalinfo','option'=>'see'])?>>个人信息</a></li>
 		<li role="presentation"><a href=<?=Url::to(['site/message','option'=>'receive'])?>>内外通信</a></li>
-		<li role="presentation"><a href=<?=Url::to(['vip/finance'])?>>钱包流水</a></li>
+		<li role="presentation"><a href=<?=Url::to(['vip/finance','option'=>'flows'])?>>钱包账单</a></li>
   		<li role="presentation"><a href=<?=Url::to(['vip/support'])?>>我的资助</a></li>
   		<li role="presentation"><a href=<?=Url::to(['vip/wish'])?>>心愿广场</a></li>
   		<li role="presentation"><a href=<?=Url::to(['vip/mywish','option'=>'see'])?>>我的心愿</a></li>

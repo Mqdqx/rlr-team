@@ -5,6 +5,7 @@ namespace app\models;
 use Yii;
 use app\models\Wish;
 use app\models\Team;
+use app\models\Community;
 
 class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
 {
@@ -32,6 +33,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             [['number','username','sex'],'required','message'=>'此项不能为空！','on'=>['modify']],
             ['number','match','pattern'=>'/^((13[0-9])|(14[5,7,9])|(15[^4])|(18[0-9])|(17[0,1,3,5,6,7,8]))\\d{8}$/','message'=>'手机号码格式错误','on'=>['modify']],
             ['username','match','pattern'=>'/^[A-Za-z0-9_\x{4e00}-\x{9fa5}]+$/u','message'=>'过长或含有非法字符！','on'=>['modify']],
+            ['username', 'string','max'=>8,'on'=>['modify']],
             ['username', 'unique','message'=>'该昵称已被占用，请重新输入','on'=>['modify']],
             ['number', 'unique','message'=>'该手机号已被占用，请重新输入','on'=>['modify']],
             ['truename','match','pattern'=>'/^[A-Za-z0-9_\x{4e00}-\x{9fa5}]+$/u','message'=>'过长或含有非法字符！','on'=>['modify']],
@@ -247,6 +249,14 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     public function getTeams()
     {
         return $this->hasMany(Team::className(),['team_id'=>'team_id'])->viaTable('user_team',['user_id'=>'user_id']);
+    }
+
+    /**
+     * witness 该账号为见证人时 关联 唯一的社区 |community 对象
+     */
+    public function getCommunity()
+    {
+        return $this->hasOne(Community::className(),['user_id'=>'user_id']);
     }
 
     /**

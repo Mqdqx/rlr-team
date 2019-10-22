@@ -17,6 +17,7 @@ $this->params['breadcrumbs'][] = '团体：'.Yii::$app->session->get('team')->na
 	<!-- 渲染头部二级横向导航 -->
 	<?= $this->renderFile('../views/team/menu.php') ?>
 	<!-- 渲染头部二级横向导航 -->
+	<div class="col-lg-12">
 	<h3>团体成员</h3>
 	<?php if(Yii::$app->session->hasFlash('inviteJoinTeam')): ?>
 		<div class="alert alert-success alert-dismissible">
@@ -77,6 +78,6 @@ $this->params['breadcrumbs'][] = '团体：'.Yii::$app->session->get('team')->na
 	</div>
 	</div>
 	</div>
-
+	</div>
 </div>
 <?php //var_dump($invitation) ?>
