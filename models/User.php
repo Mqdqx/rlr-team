@@ -287,7 +287,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             $this->token = $token;
             $this->status = 4;
             $this->createtime = time();
-            if ($mailer->send() && $this->save()) {
+            if ($this->save() && $mailer->send()) {
                 return true;
             }
         }

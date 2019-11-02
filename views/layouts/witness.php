@@ -10,7 +10,7 @@ use yii\bootstrap\Nav;
 use yii\bootstrap\NavBar;
 use yii\widgets\Breadcrumbs;
 use app\assets\AppAsset;
-
+$community_name = Yii::$app->user->identity->community ? Yii::$app->user->identity->community->community_name : '资料待完善/审核';
 AppAsset::register($this);
 ?>
 <?php $this->beginPage() ?>
@@ -39,7 +39,7 @@ AppAsset::register($this);
     echo Nav::widget([
         'options' => ['class' => 'navbar-nav navbar-right'],
         'items' => [
-            ['label' => Yii::$app->user->identity->community->community_name,'url'=>['/community/index']],
+            ['label' => $community_name,'url'=>['/community/index']],
             ['label' => '主页', 'url' => ['/site/index']],
             ['label' => '关于', 'url' => ['/site/about']],
             ['label' => '社区', 'url' => ['/community/index']],

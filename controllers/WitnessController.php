@@ -9,6 +9,7 @@ use yii\web\Controller;
 use yii\filters\VerbFilter;
 use yii\data\Pagination;
 use app\models\Wish;
+use app\models\Community;
 
 class WitnessController extends Controller
 {
@@ -79,8 +80,17 @@ class WitnessController extends Controller
      */
     public function actionPersonalinfo()
     {
-        
-        return $this->render('personalinfo');
+        if (Yii::$app->request->get('option') == '') {
+            if (!Yii::$app->user->identity->community) {
+                $community = new Community;
+
+            }else{
+                $community = Yii::$app->user->identity->community;
+            }
+        }elseif (Yii::$app->request->get('option') == 'modify') {
+            
+        }
+        return $this->render('personalinfo',['community'=>$community]);
     }
 
     /**

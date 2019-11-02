@@ -37,11 +37,15 @@ $config = [
             'useFileTransport' => false,
             'transport' => [
                 'class' => 'Swift_SmtpTransport',
-                'host' => 'smtp.163.com',
-                'username' => 'rlrteam@163.com',
-                'password' => 'rlr123456',
-                'port' => '465',
-                'encryption' => 'ssl',
+                'host' => 'mail.renlianren.com',
+                'username' => 'test@renlianren.com',
+                'password' => 'renlianren.123',
+                'port' => '25',
+                //'encryption' => 'ssl',
+            ],
+            'messageConfig'=>[
+                'charset'=>'UTF-8',
+                'from'=>['test@renlianren.com'=>'admin']
             ],
         ],
         'log' => [

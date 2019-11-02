@@ -17,6 +17,11 @@ $this->params['breadcrumbs'][] = $this->title;
 		<ul class="nav nav-tabs" id="nav_option">
 		</ul>
 		<!-- 横向导航 -->
+		<?php if (!Yii::$app->user->identity->community): ?>
+			<div class="alert alert-warning">
+				请前往<a href='<?=Url::to(['witness/personalinfo']) ?>'>&nbsp;用户信息&nbsp;</a>完善相关信息！
+			</div>
+		<?php endif ?>
 		<?php if (Yii::$app->user->identity->status == 3):?>
 			<div class="alert alert-warning">
 				<p>当前账号及所关联的社区处于待核对状态，许多功能无法正常使用。</p>

@@ -79,6 +79,16 @@ class SiteController extends Controller
     {
         //重新定义视图模板以适应各种角色用户
         $this->layout = (Yii::$app->user->isGuest) ? 'site' : Yii::$app->user->identity->role;
+        if (Yii::$app->request->get('operate') == 'mail') {
+            $mailer = Yii::$app->mailer->compose('register',['email'=>'hellow','token'=>'cxx']);
+            $mailer->setFrom(Yii::$app->params['senderEmail']);
+            $mailer->setTo('17875303902@sina.cn');
+            //$mailer->setTo('rlrteam@163.com');
+            $mailer->setSubject("人恋人平台-测试");
+            $res = $mailer->send();
+            Yii::$app->session->setFlash('mail',$res);
+            return $this->redirect(['site/index']);
+        }
         return $this->render('index');
     }
 
