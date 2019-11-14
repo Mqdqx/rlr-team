@@ -100,7 +100,7 @@ class VipController extends Controller
                     $post = Yii::$app->request->post();
                     $trade = $model->rechargeAlipay($post);
                     if (!$trade) {
-                        Yii::$app->session->setFlash('rechargeFail');
+                        Yii::$app->session->setFlash('payFail');
                     } else {
                         //接入支付宝 SDK
                         require_once './../vendor/alipay/config.php';
@@ -173,6 +173,19 @@ class VipController extends Controller
                     }
                     $transaction->commit();
                     Yii::$app->session->setFlash('support','心愿：'.$wish->wish_id.'资助成功，请静候相关负责人联系您办理接下来的手续！');
+                    //发邮件告知受资助者和见证人
+                    //见证人
+                    $mailer = Yii::$app->mailer->compose('wish_support',['name'=>$wish->getUsername('verify'),'role'=>'witness','wish_id'=>$wish->wish_id]);
+                    $mailer->setFrom(Yii::$app->params['senderEmail']);
+                    $mailer->setTo($wish->witness->email);
+                    $mailer->setSubject('人恋人平台-心愿进展通知');
+                    $mailer->send();
+                    //受资助者
+                    $mailer = Yii::$app->mailer->compose('wish_support',['name'=>$wish->getUsername('wish'),'role'=>'vip','wish_id'=>$wish->wish_id]);
+                    $mailer->setFrom(Yii::$app->params['senderEmail']);
+                    $mailer->setTo($wish->user->email);
+                    $mailer->setSubject('人恋人平台-心愿进展通知');
+                    $mailer->send();
                 } catch (\Exception $e) {
                     $transaction->rollback();
                     Yii::$app->session->setFlash('support','心愿：'.$wish->wish_id.'操作失败，可能是网络问题，请稍后刷新重试！');

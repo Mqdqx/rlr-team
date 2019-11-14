@@ -81,11 +81,17 @@ class WitnessController extends Controller
     public function actionPersonalinfo()
     {
         if (Yii::$app->request->get('option') == '') {
-            if (!Yii::$app->user->identity->community) {
-                $community = new Community;
-
-            }else{
-                $community = Yii::$app->user->identity->community;
+            $community = Community::findOne(['user_id'=>Yii::$app->user->identity->user_id]);
+            if (!$community) {
+                $community = new Community();
+                $community->scenario = 'newone';
+                if (Yii::$app->request->isPost) {
+                    $post = Yii::$app->request->post();
+                    if ($community->newone($post)) {
+                        Yii::$app->session->setFlash('submit');
+                        return $this->redirect(['witness/personalinfo']);
+                    }
+                }
             }
         }elseif (Yii::$app->request->get('option') == 'modify') {
             
@@ -139,7 +145,6 @@ class WitnessController extends Controller
                 break;
             //待启动
             case 'start':
-                $models = Wish::find_Witness('start');
                 if (Yii::$app->request->get('wish_id')) {
                     $model = Wish::findOne(['wish_id'=>Yii::$app->request->get('wish_id')]);
                     $model->scenario = 'start';
@@ -149,9 +154,12 @@ class WitnessController extends Controller
                             Yii::$app->session->setFlash('started',$model->wish_id.'启动成功！');
                             return $this->redirect(['witness/wish','option'=>'start']);
                         }
+                    } else {
+                        $model->_starttime = date('y-m-d H:i:s',time());
                     }
                     return $this->render('wish',['wish'=>$model]);
                 }
+                $models = Wish::find_Witness('start');
                 break;
             //资助周期中
             case 'supporting':

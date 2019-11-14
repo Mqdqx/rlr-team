@@ -36,7 +36,7 @@ $titles = ['flows'=>'账单','recharge'=>'充值','withdraw'=>'提现'];
 
 		<?php elseif(Yii::$app->request->get('option') == 'recharge'): ?>
 			<?php if(Yii::$app->session->hasFlash('paySuccess')): ?>
-				<div class="alert alert-success">付款成功！请稍后刷新余额界面！</div>
+				<div class="alert alert-success">付款成功！服务器可能存在延迟，请稍后刷新再验证到账！</div>
 			<?php elseif(Yii::$app->session->hasFlash('payFail')): ?>
 				<div class="alert alert-danger">操作失败！请稍后再试或反馈此问题!</div>
 			<?php endif; ?>
@@ -45,7 +45,7 @@ $titles = ['flows'=>'账单','recharge'=>'充值','withdraw'=>'提现'];
 					'layout'=>'horizontal',
 					'fieldConfig'=>['template'=>"
 						<div class=\"col-lg-3\">{input}</div>
-						<button type\"submit\" class=\"btn btn-info\" data-confirm=\"您确定充值如上金额吗？我们将调整到支付界面\">充值</button>\n
+						<button type\"submit\" class=\"btn btn-info\" data-confirm=\"您确定充值如上金额吗？我们将跳转到支付界面\">充值</button>\n
 						<div class=\"col-lg-3\">{error}</div>"]
 				]); 
 			?>

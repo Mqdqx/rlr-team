@@ -30,16 +30,7 @@ $this->title = '主页-人恋人公益平台';
 ?>
 <?php
 
-$sid = session_id();
 
-print($sid."\n");
-echo '<hr>';
 
 ?>
-<?=Html::a('邮件测试',Url::to(['site/index','operate'=>'mail']),['class'=>'btn btn-info']) ?>
-<br>
-<?php if (Yii::$app->session->hasFlash('mail')): ?>
-	<div class="alert alert-warning">
-		<?php var_dump(Yii::$app->session->getFlash('mail')) ?>
-	</div>
-<?php endif ?>
+

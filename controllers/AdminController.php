@@ -7,6 +7,7 @@ use yii\filters\AccessControl;
 use yii\web\NotFoundHttpException;
 use yii\web\Controller;
 use yii\filters\VerbFilter;
+use yii\data\ActiveDataProvider;
 use app\models\User;
 use app\models\Community;
 
@@ -101,27 +102,26 @@ class AdminController extends Controller
         switch (Yii::$app->request->get('option')) {
             //社区管理模块
             case 'manage':
-                $data = '社区管理';
-                return $this->render('community',['data'=>$data]);
+                $dataProvider = new ActiveDataProvider([
+                    'query'=> Community::find()->where([]),
+                    'pagination' => ['pagesize' => 10],
+                ]);
+                return $this->render('community',['dataProvider'=>$dataProvider]);
                 break;
-            //收到一位见证人witness邮寄过来的文件资料，新建一个社区且关联
-            case 'newone':
-                $model = new Community();
-                $witness = User::find()->where(['status'=>3])->all();
+            //收到一位见证人witness邮寄过来的文件资料，审核一个社区且关联
+            case 'approve':
+                $community = Community::findOne(['community_id'=>Yii::$app->request->get('community_id')]);
+                $community->truename = $community->user->truename;
+                $community->number = $community->user->number;
+                $community->scenario = 'newone';
                 if (Yii::$app->request->isPost) {
                     $post = Yii::$app->request->post();
-                    $transaction = Yii::$app->db->beginTransaction();
-                    try {
-                        if ($model->newone($post)) {
-                            $transaction->commit();
-                            Yii::$app->session->setFlash('newCommunity',$model->community_name);
-                            return $this->refresh();
-                        }
-                    }catch(\Exception $e){
-                        $transaction->rollback();
+                    if ($community->approve($post)) {
+                        Yii::$app->session->setFlash('approved',$community->community_name);
+                        return $this->redirect(['admin/community','option'=>'manage']);
                     }
                 }
-                return $this->render('community',['model'=>$model,'witness'=>$witness]);
+                return $this->render('community',['community'=>$community]);
                 break;
             default:
                 throw new NotFoundHttpException("警告！越权操作！");

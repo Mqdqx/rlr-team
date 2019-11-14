@@ -13,7 +13,7 @@ use app\models\Flows;
  * @property string $out_trade_no 平台此次交易号
  * @property int $flows_id 关联的流水单号
  * @property int $type 交易类型：0->付款，1->退款
- * @property int $status 当前状态:0->待异步/同步验证，1->异步/同步验证成功，2->异步/同步验证失败
+ * @property int $status 当前状态:0->待异步验证，1->异步/验证成功，2->异步/验证失败
  * @property string $money 金额大小
  */
 class Trade extends \yii\db\ActiveRecord

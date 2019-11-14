@@ -8,12 +8,16 @@ use yii\web\NotFoundHttpException;
 use yii\web\Controller;
 use yii\web\Response;
 use yii\filters\VerbFilter;
+use yii\filters\AjaxFilter;
 use yii\data\Pagination;
 use app\models\LoginForm;
 use app\models\ContactForm;
 use app\models\User;
 use app\models\Message;
 use app\models\TeamMessage;
+use app\models\Guardian;
+use yiier\region\models\Region;
+use yii\helpers\ArrayHelper;
 
 class SiteController extends Controller
 {
@@ -28,13 +32,17 @@ class SiteController extends Controller
     public function behaviors()
     {
         return [
+            [
+                'class' => AjaxFilter::className(),//非AJAX过滤器,
+                'only' => ['getcity']
+            ],
             //无权限访问过滤且报错
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['logout','message','contact','personalinfo','register_vip','register_community'],
+                'only' => ['logout','message','contact','personalinfo','register_vip','register_community','getcity'],
                 'rules' => [
                     [
-                        'actions' => ['logout','message','contact','personalinfo'],
+                        'actions' => ['logout','message','contact','personalinfo','getcity'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -302,10 +310,33 @@ class SiteController extends Controller
                 }
                 break;
             case 'guardian':
-                
+                if (Yii::$app->user->identity->guardian) {
+                    $model = Yii::$app->user->identity->guardian;
+                } else {
+                    $model = new Guardian();
+                    $model->scenario = 'updateGuardian'; 
+                    if (Yii::$app->request->isPost) {
+                        $post = Yii::$app->request->post();
+                        if ($model->updateGuardian($post)) {
+                            Yii::$app->session->setFlash('guardianUpdate');
+                            return $this->refresh();
+                        }
+                    }
+                }
+                break;
+            case 'updateGuardian':
+                $model = Yii::$app->user->identity->guardian;
+                $model->scenario = 'updateGuardian'; 
+                if (Yii::$app->request->isPost) {
+                    $post = Yii::$app->request->post();
+                    if ($model->updateGuardian($post)) {
+                        Yii::$app->session->setFlash('guardianUpdate');
+                        return $this->redirect(['site/personalinfo','option'=>'guardian']);
+                    }
+                }
                 break;
             default:
-
+                //option == see;
                 break;
         }
         return $this->render('personalinfo',['model'=>$model]);
@@ -394,6 +425,17 @@ class SiteController extends Controller
                 break;
         }
 
+    }
+
+    /**
+     * 响应前台AJAX取出省对应市的请求
+     */
+    public function actionGetcity()
+    {
+        $province_id = Yii::$app->request->get('province_id');
+        $city = Region::find()->where(['type'=>1,'parent_id'=>$province_id])->asArray()->all();
+        $city = ArrayHelper::map($city,'id','name');
+        echo json_encode($city);
     }
 
 }

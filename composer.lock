@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f4d43bc46d9c58f1876e02688b17f3e0",
+    "content-hash": "75f55e9dda133707a55b55d15ca661ce",
     "packages": [
         {
             "name": "2amigos/yii2-date-time-picker-widget",
@@ -115,7 +115,7 @@
             "version": "3.4.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/jquery/jquery-dist.git",
+                "url": "git@github.com:jquery/jquery-dist.git",
                 "reference": "15bc73803f76bc53b654b9fdbbbc096f56d7c03d"
             },
             "dist": {
@@ -133,7 +133,7 @@
             "version": "v1.3.2",
             "source": {
                 "type": "git",
-                "url": "https://github.com/bestiejs/punycode.js.git",
+                "url": "git@github.com:bestiejs/punycode.js.git",
                 "reference": "38c8d3131a82567bfef18da09f7f4db68c84f8a3"
             },
             "dist": {
@@ -148,7 +148,7 @@
             "version": "2.4.4",
             "source": {
                 "type": "git",
-                "url": "https://github.com/smalot/bootstrap-datetimepicker.git",
+                "url": "git@github.com:smalot/bootstrap-datetimepicker.git",
                 "reference": "32143c8b45575e51c92a8e29997cbe556d1bbba3"
             },
             "dist": {
@@ -339,6 +339,47 @@
                 "mailer"
             ],
             "time": "2018-07-31T09:26:32+00:00"
+        },
+        {
+            "name": "yiier/yii2-china-region",
+            "version": "v1.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/yiier/yii2-china-region.git",
+                "reference": "217966334b6f267743527ab959feb530813a941b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/yiier/yii2-china-region/zipball/217966334b6f267743527ab959feb530813a941b",
+                "reference": "217966334b6f267743527ab959feb530813a941b",
+                "shasum": ""
+            },
+            "require": {
+                "yiisoft/yii2": "~2.0.0"
+            },
+            "type": "yii2-extension",
+            "autoload": {
+                "psr-4": {
+                    "yiier\\region\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-4-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "forecho",
+                    "email": "caizhenghai@gmail.com"
+                }
+            ],
+            "description": "Yii2中国省市区三级联动",
+            "keywords": [
+                "extension",
+                "region",
+                "yii2"
+            ],
+            "time": "2018-06-08T10:33:57+00:00"
         },
         {
             "name": "yiisoft/yii2",

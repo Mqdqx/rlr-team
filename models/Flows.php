@@ -19,7 +19,7 @@ use app\models\Trade;
  * @property string $money 金额，两位小数
  * @property int $type 流水类型：1->个人钱包充值，2->个人钱包提现，3->资助周期自动拨款，4->个人钱包至团体钱包，5->站内转账
  * @property int $endtime 完成时间戳
- * @property int $status 当前状态：0->已完成，1->提现申请待完成
+ * @property int $status 当前状态：0->已完成，1->提现申请待完成，2->充值交易未完成
  */
 class Flows extends \yii\db\ActiveRecord
 {
@@ -174,6 +174,9 @@ class Flows extends \yii\db\ActiveRecord
             case '1':
                 $status = '转账中';
                 break;
+            case '2':
+                $status = '交易未完成';
+                break;
             default:
                 $status = '未知错误';
                 break;
@@ -232,7 +235,7 @@ class Flows extends \yii\db\ActiveRecord
             $this->in_id = Yii::$app->user->identity->user_id;
             $this->in_role = 'vipPurse';
             $this->type = 1;
-            $this->status = 1;
+            $this->status = 2;//交易未完成
             $transaction = Yii::$app->db->beginTransaction();
             try {
                 if (!$this->save()) {

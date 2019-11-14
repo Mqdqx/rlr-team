@@ -6,6 +6,7 @@ use yii\helpers\Url;
 use yii\helpers\Html;
 use yii\widgets\LinkPager;
 use yii\widgets\DetailView;
+use dosamigos\datetimepicker\DateTimePicker;
 
 $this->title = '心愿管理';
 $this->params['breadcrumbs'][] = ['label'=>'应用中心','url' => Url::to([Yii::$app->user->identity->role.'/index'])];
@@ -336,6 +337,19 @@ $this->params['breadcrumbs'][] = $this->title;
 				<?=$form->field($wish,'per')->textInput()->label('每期金额￥') ?>
 				<?=$form->field($wish,'money')->textInput(['readonly' => 'true'])->label('总金额￥') ?>
 				<?=$form->field($wish,'protocolFile')->fileInput()->label('协议上传') ?>
+				<?=$form->field($wish, '_starttime')->widget(
+	        		DateTimePicker::className(), [
+	        			// inline too, not bad
+				        'inline' => false,
+				        'language' => 'zh-CN' , //--设置为中文
+				        'clientOptions' => [
+				            'autoclose' => true,
+				            'startDate'=>date('Y-m-d',time()-86400),
+				            //'endDate'=>date('Y-m-d',time()+86400*7),
+				            'minView'=>'day',
+				            'format' => 'yy-mm-dd hh:ii:ss',
+	        			]
+	    		]);?>
 				<div class="form-group"><div class="col-lg-offset-2 col-lg-10">
 				<?= Html::submitButton('启动', ['class' => 'btn btn-info', 'name' => 'start-button', 'data-confirm'=>'您确定进行下一步吗？']) ?>
 	        	</div></div>

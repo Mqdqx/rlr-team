@@ -6,6 +6,7 @@ use Yii;
 use app\models\Wish;
 use app\models\Team;
 use app\models\Community;
+use app\models\Guardian;
 
 class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
 {
@@ -184,7 +185,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             case 'newWish':
                 $status = $this->number==0 ? '手机号码，' : '';
                 $status = $this->truename=='' ? $status.'真实姓名，' : $status;
-                $status = $this->alipay=='' ? $status.'支付宝收款账号，' : $status;
+                $status = ($this->alipay=='' && $this->guardian == null ) ? $status.'银行卡号，或监护人银行卡号' : $status;
                 break;
             case 'message':
                 $status = $this->username=='' ? '昵称，' : $status;
@@ -194,7 +195,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
                 $status = $this->username=='' ? $status.'昵称，' : $status;
                 $status = $this->truename=='' ? $status.'真实姓名，' : $status;
                 $status = $this->sex=='' ? $status.'性别，' : $status;
-                $status = $this->alipay=='' ? $status.'支付宝收款账号，' : $status;
+                $status = $this->alipay=='' ? $status.'银行卡号，' : $status;
                 $status = $this->wechat=='' ? $status.'微信账号，' : $status;
                 $status = $this->address=='' ? $status.'常居地址，' : $status;
                 $status = $this->company=='' ? $status.'工作单位，' : $status;
@@ -265,6 +266,14 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     public function isCreator()
     {
         return ($this->user_id == Yii::$app->session->get('team')->user_id) ? 'success' : '';
+    }
+
+    /**
+     * 关联唯一监护人/待收款人
+     */
+    public function getGuardian()
+    {
+        return $this->hasOne(Guardian::className(),['user_id'=>'user_id']);
     }
 
     /**

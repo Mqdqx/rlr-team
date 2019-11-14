@@ -46,6 +46,7 @@ class Wish extends \yii\db\ActiveRecord
     private $_wish = false;
     private static $CrontabRes = [];
     public $protocolFile;
+    public $_starttime;
 
     /**
      * {@inheritdoc}
@@ -75,7 +76,7 @@ class Wish extends \yii\db\ActiveRecord
             ['money','validateMoney','on'=>['publish','start']],
             ['token','validateToken','on'=>['publish']],//必须放在publish场景的最后
 
-            [['month','money','per'],'required','on'=>['start']],
+            [['month','money','per','_starttime'],'required','on'=>['start']],
             [['month','per'],'integer','on'=>['start']],
             [['protocolFile'],'file','skipOnEmpty'=>false,'extensions'=>'docx','maxSize' => 15*1024,'on'=>['start']],
 
@@ -112,6 +113,7 @@ class Wish extends \yii\db\ActiveRecord
             'verify_time' => '审核时间',
             'publish_time' => '发布心愿时间',
             'start_time' => '启动周期时间',
+            '_starttime' => '启动周期时间',
             'end_time' => '心愿完成时间间',
             'status' => '当前状态',
             'locking_time' => '锁定时间',
@@ -397,6 +399,11 @@ class Wish extends \yii\db\ActiveRecord
             $status = ['accept'=>2 ,'reject'=>9];
             $this->status = $status[$approve];
             $this->verify_time = time();
+            $mailer = Yii::$app->mailer->compose('wish_approved',['name'=>$this->user->truename,'wish_id'=>$this->wish_id]);
+            $mailer->setFrom(Yii::$app->params['senderEmail']);
+            $mailer->setTo($this->user->email);
+            $mailer->setSubject('人恋人平台-心愿审核通知');
+            $mailer->send();
             return (bool)$this->save();
         }
         return false;
@@ -416,7 +423,7 @@ class Wish extends \yii\db\ActiveRecord
         $this->scenario = 'default';
         if ($this->load($data) && $this->validate()) {
             $this->filepath ='./file/wish/'.$this->wish_id.'.docx';
-            $this->start_time = time();
+            $this->start_time = strtotime($this->_starttime);//日期格式的字符串 转 时间戳;
             $this->status = 4;
             return (bool)$this->save();
         }
@@ -525,6 +532,14 @@ class Wish extends \yii\db\ActiveRecord
             echo "balance not enough ".$res['insufficient']."\n";
         }
         return 1;
+    }
+
+    /**
+     * 根据verify_user_id返回审核员/见证人 对象
+     */
+    public function getWitness()
+    {
+        return $this->hasOne(User::className(),['user_id'=>'verify_user_id']);
     }
 
     /**

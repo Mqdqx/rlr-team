@@ -53,7 +53,11 @@ class TeamController extends Controller
                         'matchCallback' => function($rule,$action) {
                             $user_id = Yii::$app->user->identity->user_id;
                             $team_id = Yii::$app->request->get('team_id');
-                            return (UserTeam::isMember($user_id,$team_id)) ? true : false;
+                            $_res = UserTeam::isMember($user_id,$team_id);
+                            if ($_res) {
+                                Yii::$app->session->set('team',Team::findOne(['team_id'=>$team_id]));
+                            }
+                            return $_res;
                         }
                     ],
                 ],
@@ -106,9 +110,8 @@ class TeamController extends Controller
      */
     public function actionMyteam()
     {
-        $model = Team::findOne(['team_id'=>Yii::$app->request->get('team_id')]);
-        //必须验证数据的真实性和时效性  本文件Line54
-        Yii::$app->session->set('team',$model);
+        $model = Yii::$app->session->get('team');
+
         return $this->render('myteam',['model'=>$model]);
     }
 

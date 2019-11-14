@@ -1,5 +1,5 @@
 <?php
-    $url = "http://www.renlianren.com/index.php?r=pay/alipay_notify";
+    $url = "http://122.51.233.197/rlr/web/index.php?r=pay/alipay_notify";
     $post_data = $_POST;
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
