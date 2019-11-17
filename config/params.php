@@ -7,5 +7,4 @@ return [
 	'pageSize' => 10,//分页时的每页显示数据
 
 
-    'DNS' => '127.0.0.1/rlr-team/web/index.php',
 ];

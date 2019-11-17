@@ -26,7 +26,27 @@ AppAsset::register($this);
 </head>
 <body>
 <?php $this->beginBody() ?>
+<script>
+    //功能：传入字符串url和参数name，返回name的值
+    function getUrlParam(url,name) {
+        var pattern = new RegExp("[?&]"+name+"\=([^&]+)", "g");  
+        var matcher = pattern.exec(url);  
+        var items = null;  
+        if(null != matcher){  
+            try{  
+                items = decodeURIComponent(decodeURIComponent(matcher[1]));  
+            }catch(e){  
+                try{  
+                    items = decodeURIComponent(matcher[1]);  
+                }catch(e){  
+                    items = matcher[1];  
+                }  
+            }
+         }  
+     return items;  
+    }
 
+</script>
 <div class="wrap">
     <?php
     NavBar::begin([
@@ -72,24 +92,6 @@ AppAsset::register($this);
 
 <!-- 美化左侧边导航栏 -->
 <script>
-    //功能：传入字符串url和参数name，返回name的值
-    function getUrlParam(url,name) {
-        var pattern = new RegExp("[?&]"+name+"\=([^&]+)", "g");  
-        var matcher = pattern.exec(url);  
-        var items = null;  
-        if(null != matcher){  
-            try{  
-                items = decodeURIComponent(decodeURIComponent(matcher[1]));  
-            }catch(e){  
-                try{  
-                    items = decodeURIComponent(matcher[1]);  
-                }catch(e){  
-                    items = matcher[1];  
-                }  
-            }
-         }  
-     return items;  
-    }
 
     //将所在界面对应的导航栏按钮加色
     $(function() {

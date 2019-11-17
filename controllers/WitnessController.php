@@ -151,6 +151,16 @@ class WitnessController extends Controller
                     if (Yii::$app->request->isPost) {
                         $post = Yii::$app->request->post();
                         if ($model->start($post)) {
+                            $mailer = Yii::$app->mailer->compose('wish_start',['role'=>'vip','name'=>$model->user->truename,'wish_id'=>$model->wish_id]);
+                            $mailer->setFrom(Yii::$app->params['senderEmail']);
+                            $mailer->setTo($model->user->email);
+                            $mailer->setSubject('人恋人平台-心愿启动通知');
+                            $mailer->send();
+                            $mailer = Yii::$app->mailer->compose('wish_start',['role'=>'sponsor','name'=>$model->getUsername('sponsor'),'wish_id'=>$model->wish_id]);
+                            $mailer->setFrom(Yii::$app->params['senderEmail']);
+                            $mailer->setTo($model->sponsor->email);
+                            $mailer->setSubject('人恋人平台-心愿启动通知');
+                            $mailer->send();
                             Yii::$app->session->setFlash('started',$model->wish_id.'启动成功！');
                             return $this->redirect(['witness/wish','option'=>'start']);
                         }

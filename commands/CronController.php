@@ -36,20 +36,20 @@ class CronController extends Controller
     public function actionWish()
     {
         echo "-------------------------------------------- \n";
-        echo date("y-m-d H:i:s").", Start Wish/Crontab:\n";
-        echo "-------------------------------------------- \n";
-
+        echo date("y-m-d H:i:s").", Start Wish::Crontab()\n";
+        
         $result = Wish::Crontab();
 
         foreach ($result as $key => $value) {
-            echo "-------------------------------------------- \n";
+            echo "++++++++++++++++++++++++++++++++++++++++++++ \n";
             echo 'wish_id:'.$key."\n";
             echo 'success:'.$value['success']."\n";
             echo 'insufficient:'.$value['insufficient']."\n";
             echo 'error:'.$value['error']."\n";
-            echo "-------------------------------------------- \n";
+            echo "++++++++++++++++++++++++++++++++++++++++++++ \n";
         }
-
+        echo "-------------------------------------------- \n";
+        file_put_contents(dirname(__DIR__).'/log/cronlog.txt','|___'.date('YmdHis').'*'.json_encode($result).'___|'.PHP_EOL,FILE_APPEND);//写入日志
         return ExitCode::OK;
     }
 }

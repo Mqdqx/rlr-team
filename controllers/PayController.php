@@ -26,7 +26,7 @@ class PayController extends Controller
         $result = $alipaySevice->check($get);
         if ($result) {
             //--------------------------------------------------------------//
-            //这里验证：total_amount交易金额 auth_app_id/app_id应用ID seller_id商户ID 订单状态 是否与数据库匹配
+            //这里验证：同步跳转传参的正确性
             $trade = Trade::findOne(['out_trade_no'=>$get['out_trade_no']]);
             try {
                 if ($get['app_id'] !== $config['app_id']) throw new \Exception();

@@ -87,7 +87,7 @@ class Wish extends \yii\db\ActiveRecord
             [['user_id', 'tokentime', 'month','transfered' ,'label','verify_user_id', 'verify_time','publish_time' ,'start_time','end_time' ,'status','locking_time' ,'locking_user_id','locking_team_id' ,'version'], 'integer'],
             [['money','per'], 'number'],
             ['money','validateMoney'],//最后一重验证
-            [['filepath','token'], 'string', 'max' => 100],
+            [['filepath','token','_starttime'], 'string', 'max' => 100],
             [['description', 'verify_res'], 'string', 'max' => 255],
         ];
     }
@@ -112,7 +112,7 @@ class Wish extends \yii\db\ActiveRecord
             'verify_user_id' => '见证人',
             'verify_time' => '审核时间',
             'publish_time' => '发布心愿时间',
-            'start_time' => '启动周期时间',
+            'start_time' => '启动周期时间戳',
             '_starttime' => '启动周期时间',
             'end_time' => '心愿完成时间间',
             'status' => '当前状态',
@@ -420,7 +420,7 @@ class Wish extends \yii\db\ActiveRecord
             $this->addError('protocolFile','文件上传失败');
             return false;
         }
-        $this->scenario = 'default';
+        $this->scenario = 'default';//中途更换了场景，注意换之前后之后的规则生效时的事件
         if ($this->load($data) && $this->validate()) {
             $this->filepath ='./file/wish/'.$this->wish_id.'.docx';
             $this->start_time = strtotime($this->_starttime);//日期格式的字符串 转 时间戳;
@@ -443,7 +443,7 @@ class Wish extends \yii\db\ActiveRecord
             //$status : 当前时间下 周期处于第几区间，若为整型，则位于 端点日
             $status = (strtotime(date('Y-m-d')) - $model->getStartday()) / 2678400; 
             $status = ($status >= $model->month) ? $model->month : $status;//如果超过最后一个端点日，则取其
-            $_status = $status - $model->transfered;//$_status浮点数或整型(若为整型则此天为端点日/最后端点日) ， 为 当前 欠 多少期，最高为 总期数,
+            $_status = $status - $model->transfered;//$_status浮点数或整型(若为整型则此天为端点日/最后端点日)，为当前欠多少期，最高为总期数,
             if ($_status < 1) {
                 continue;
             }
@@ -506,32 +506,75 @@ class Wish extends \yii\db\ActiveRecord
                     self::$CrontabRes[$wish->wish_id]['success'] ++ ;
                 } catch (\Exception $e) {
                     $transaction->rollback();
-                    echo $e."\n";
+                    file_put_contents('./../log/cronlog.txt','|---'.date('YmdHis').'*'.json_encode($e).'*'.$wish->wish_id.'---|',FILE_APPEND);//写入日志
                     self::$CrontabRes[$wish->wish_id]['error'] ++ ;
                 }
             }
         }
         //如果为端点日，则发送邮件 给资助者 提醒或催款
         if (is_int($number)) {
-            self::emailTransferRes($wish->sponsor,self::$CrontabRes[$wish->wish_id]);
+            self::emailTransferRes($wish,self::$CrontabRes[$wish->wish_id]);
         }
-        return 1;
     }
 
     /**
      * 发邮件提醒
-     * @sponsor,资助者
      * @res,转账任务结果
      */
-    public static function emailTransferRes($sponsor,$res)
+    public static function emailTransferRes($wish,$res)
     {
         if ($res['success'] !== 0) {
-            echo "succeed send".$res['success']."\n";
+            //发送给被资助者
+            $mailer = Yii::$app->mailer->compose('wish_notify',[
+                'role'=>'vip',
+                'name'=>$wish->getUsername('wish'),
+                'wish_id'=>$wish->wish_id,
+                'money'=>$res['success']*$wish->per,
+            ]);
+            $mailer->setFrom(Yii::$app->params['senderEmail']);
+            $mailer->setTo($wish->user->email);
+            $mailer->setSubject('人恋人平台-心愿通知');
+            $mailer->send();
+            //发给资助者
+            if (($wish->sponsor->balance < $wish->per) && ($wish->transfered < $wish->month)) {
+                $next = true;
+            } else {
+                $next = false;
+            }
+            $mailer = Yii::$app->mailer->compose('wish_notify',[
+                'role'=>'sponsor',
+                'name'=>$wish->getUsername('sponsor'),
+                'wish_id'=>$wish->wish_id,
+                'money'=>$res['success']*$wish->per,
+                'next'=>$next,
+            ]);
+            $mailer->setFrom(Yii::$app->params['senderEmail']);
+            $mailer->setTo($wish->sponsor->email);
+            $mailer->setSubject('人恋人平台-心愿通知');
+            $mailer->send();
         }
         if ($res['insufficient'] !== 0) {
-            echo "balance not enough ".$res['insufficient']."\n";
+            //发给见证人
+            $mailer = Yii::$app->mailer->compose('wish_notify',[
+                'role'=>'witness',
+                'name'=>$wish->getUsername('verify'),
+                'wish_id'=>$wish->wish_id,
+            ]);
+            $mailer->setFrom(Yii::$app->params['senderEmail']);
+            $mailer->setTo($wish->witness->email);
+            $mailer->setSubject('人恋人平台-心愿通知');
+            $mailer->send();
+            //发给资助者
+            $mailer = Yii::$app->mailer->compose('wish_prompt',[
+                'name'=>$wish->getUsername('sponsor'),
+                'wish_id'=>$wish->wish_id,
+                'month'=>$res['insufficient'],
+            ]);
+            $mailer->setFrom(Yii::$app->params['senderEmail']);
+            $mailer->setTo($wish->sponsor->email);
+            $mailer->setSubject('人恋人平台-心愿通知');
+            $mailer->send();
         }
-        return 1;
     }
 
     /**
