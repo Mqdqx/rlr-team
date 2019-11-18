@@ -158,14 +158,14 @@ class Wish extends \yii\db\ActiveRecord
     /**
      * 判断是否暂时 入选 了团体投票活动
      */
-    public function isCandidate()
+    public function isCandidate($vote_wish)
     {
-        foreach (Yii::$app->session->get('team')->_vote->vote_wish as $key => $wish) {
+        foreach ($vote_wish as $key => $wish) {
             if ($wish->wish_id == $this->wish_id) {
-                return ['text'=>'移除入选','class'=>'btn btn-warning'];
+                return ['text'=>'移除入选','class'=>'btn btn-warning','class-xs'=>'btn btn-warning btn-xs'];
             }
         }
-        return ['text'=>'入选投票','class'=>'btn btn-info'];
+        return ['text'=>'入选投票','class'=>'btn btn-info','class-xs'=>'btn btn-info btn-xs'];
     }
 
     /**
@@ -225,6 +225,9 @@ class Wish extends \yii\db\ActiveRecord
                 break;
             case '9':
                 $status = '审核驳回';
+                break;
+            case '10':
+                $status = '资助完成';
                 break;
             default:
                 $status = '未知错误';

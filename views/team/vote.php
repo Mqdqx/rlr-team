@@ -22,20 +22,12 @@ $button = ['success'=>'查看结果','info'=>'进入投票','warning'=>'查看�
 	<?php if(Yii::$app->request->get('option') == 'see'): ?>
 
 		<h3>团体投票活动</h3>
-		<table class="table table-hover">
-			<tr><th>活动编号</th><th>开始时间</th><th>结束时间</th><th>候选人数</th><th>当前状态</th><th>操作</th></tr>
-			<?php foreach($models as $key => $vote): ?>
-				<tr class=<?=$vote->color ?>>
-					<td><?=$vote->vote_id ?></td>
-					<td><?=date('y-m-d H:i:s',$vote->starttime) ?></td>
-					<td><?=date('y-m-d H:i:s',$vote->endtime) ?></td>
-					<td><?=$vote->candidate_num ?></td>
-					<td><?=$vote::$_status[$vote->status] ?></td>
-					<td><?=Html::a($button[$vote->color],Url::to(['team/vote','option'=>'vote','team_id'=>Yii::$app->session->get('team')->team_id ,'vote_id'=>$vote->vote_id]),['class'=>'btn btn-info btn-xs']) ?></td>
-				</tr>
-			<?php endforeach; ?>
-		</table>
-		<div class="pagination pull-right"><?=LinkPager::widget(['pagination'=>$pager]) ?></div>
+		<?php elseif(Yii::$app->session->hasFlash('start')): ?>
+		<div class="alert alert-success alert-dismissible">
+			<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+			投票活动： <?=Yii::$app->session->getFlash('start') ?> 启动成功！
+		</div>
+		
 
 	<?php elseif(Yii::$app->request->get('option') == 'vote'): ?>
 

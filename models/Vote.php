@@ -4,6 +4,7 @@ namespace app\models;
 
 use Yii;
 use app\models\Wish;
+use app\models\Community;
 use app\models\VoteRes;
 use app\models\UserVote;
 
@@ -12,6 +13,7 @@ use app\models\UserVote;
  *
  * @property int $vote_id 一次投票活动的主键ID
  * @property int $team_id 隶属团体的ID
+ * @property int $community_id 资助心愿所属社区ID
  * @property string $title 此次投票的标题
  * @property int $support_num 最终资助的人数
  * @property int $candidate_num 候选人数
@@ -34,7 +36,7 @@ class Vote extends \yii\db\ActiveRecord
     /**
      * 定义临时量 可能存于session使用
      */
-    public $vote_wish = [];//存 Wish 对象数组 编辑/启动投票钱的临时捆绑
+    public $vote_wish;//存 Wish 对象数组 编辑/启动投票钱的临时捆绑
     public $_endtime;
 
     /**
@@ -60,12 +62,12 @@ class Vote extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['title','candidate_num'],'required','on'=>['newone']],
+            [['title','community_id'],'required','on'=>['newone']],
             [['title'],'string','max'=>30,'on'=>['newone']],
 
-            [['_endtime'],'required','on'=>['start']],
+            [['support_num','candidate_num','_endtime'],'required','on'=>['start']],
 
-            [['team_id', 'support_num', 'candidate_num', 'createtime','starttime', 'endtime', 'status','version'], 'integer'],
+            [['team_id', 'community_id','support_num', 'candidate_num', 'createtime','starttime', 'endtime', 'status','version'], 'integer'],
             [['title'], 'string', 'max' => 255],
         ];
     }
@@ -78,13 +80,14 @@ class Vote extends \yii\db\ActiveRecord
         return [
             'vote_id' => '投票编号',
             'team_id' => '隶属团体的ID',
+            'community_id' => '资助心愿所属社区',
             'title' => '投票标题',
             'support_num' => '最终资助的人数',
             'candidate_num' => '候选人数',
             'createtime' => '创建时间',
             'starttime' => '开始投票时间',
             'endtime' => '自动结束时间',
-            '_endtime' => '投票结束时间',
+            '_endtime' => '自动结束时间',
             'status' => '当前状态',
             'version' => '版本号（乐观锁）',
         ];
@@ -96,6 +99,14 @@ class Vote extends \yii\db\ActiveRecord
     public function getWishs()
     {
         return $this->hasMany(Wish::className(),['wish_id'=>'wish_id'])->viaTable(VoteRes::tableName(),['vote_id'=>'vote_id']);
+    }
+
+    /**
+     * 关联一对一的 心愿所属社区
+     */
+    public function getCommunity()
+    {
+        return $this->hasOne(Community::className(),['community_id'=>'community_id']);
     }
 
     /**
@@ -166,7 +177,6 @@ class Vote extends \yii\db\ActiveRecord
         if ($this->load($data) && $this->validate()) {
             $this->createtime = time();
             $this->team_id = Yii::$app->session->get('team')->team_id;
-            $this->support_num = $this->candidate_num - 1;
             $this->status = 0;
             return (bool)$this->save();
         }

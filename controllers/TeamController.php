@@ -9,6 +9,7 @@ use yii\web\Controller;
 use yii\filters\VerbFilter;
 use yii\data\Pagination;
 use yii\data\ActiveDataProvider;
+use yii\helpers\ArrayHelper;
 use app\models\Team;
 use app\models\Wish;
 use app\models\Vote;
@@ -17,6 +18,7 @@ use app\models\Flows;
 use app\models\UserTeam;
 use app\models\UserVote;
 use app\models\Message;
+use app\models\Community;
 use app\models\TeamMessage;
 
 class TeamController extends Controller
@@ -35,7 +37,7 @@ class TeamController extends Controller
             //无权限访问过滤且报错
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['index','myteam','member','newone','finance','support','vote','newvote'],
+                'only' => ['index','myteam','member','newone','finance','support','vote','newvote','editvote'],
                 'rules' => [
                     [
                         'actions' => ['index','newone'],
@@ -47,7 +49,7 @@ class TeamController extends Controller
                         }
                     ],
                     [
-                        'actions' => ['myteam','member','finance','support','vote','newvote'],
+                        'actions' => ['myteam','member','finance','support','vote','newvote','editvote'],
                         'allow' => true,
                         'roles' => ['@'],
                         'matchCallback' => function($rule,$action) {
@@ -158,6 +160,7 @@ class TeamController extends Controller
             } catch (\Exception $e) {
                 $transaction->rollback();
             }
+            $invitation->receiver = '';//与弹框兼容
         }
         $models = Team::find()->where(['team_id'=>Yii::$app->request->get('team_id')])->one()->getMember();
         $count = $models->count();
@@ -208,157 +211,73 @@ class TeamController extends Controller
      */
     public function actionVote()
     {
-        //该团体所有的投票活动 列表
-        if (Yii::$app->request->get('option') == 'see') {
-            $models = Vote::find()->where(['status'=>1,'team_id'=>Yii::$app->session->get('team')->team_id])->orderBy(['starttime'=>SORT_DESC]);
-            $count = $models->count();
-            $pageSize = Yii::$app->params['pageSize'];
-            $pager = new Pagination(['totalCount'=>$count,'pageSize'=>$pageSize]);
-            $models = $models->offset($pager->offset)->limit($pager->limit)->all(); //分页处理
-            return $this->render('vote',['models'=>$models,'pager'=>$pager]);
-        //进入一个 状态为 进行中的投票活动
-        } elseif (Yii::$app->request->get('option') == 'vote') {
-            $vote = Vote::findOne(['vote_id'=>Yii::$app->request->get('vote_id'),'status'=>1]);
-            if (!$vote) {throw new NotFoundHttpException('该投票活动可能已经结束，请刷新后重试！');}
-            return $this->render('vote',['vote'=>$vote]);
-        //当前登录用户投给 一位候选人心愿一票
-        } elseif (Yii::$app->request->get('option') == 'voteone') {
-            $vote = Vote::findOne(['vote_id'=>Yii::$app->request->get('vote_id'),'status'=>1]);
-            $wish = Wish::findOne(['wish_id'=>Yii::$app->request->get('wish_id')]);
-            //必须验证传来的数据/请求的过期性和伪造性
-            if (!$vote || !$wish) {return $this->redirect(['site/error']);}
-            //验证传入心愿是否与此投票活动绑定
-            $voteRes = VoteRes::findOne(['vote_id'=>$vote->vote_id,'wish_id'=>$wish->wish_id]);
-            if (!$voteRes) {throw new NotFoundHttpException('警告！越权操作！');}
-            //验证此用户是否已经为此投票活动的此心愿投过一票了
-            $userVote = UserVote::findOne(['user_id'=>Yii::$app->user->identity->user_id,'vote_id'=>$vote->vote_id,'wish_id'=>$wish->wish_id]);
-            if ($userVote) {throw new NotFoundHttpException('警告！越权操作！');}
-            $transaction = Yii::$app->db->beginTransaction();
-            try {
-                $userVote = new UserVote();
-                $userVote->user_id = Yii::$app->user->identity->user_id;
-                $userVote->vote_id = $vote->vote_id;
-                $userVote->wish_id = $wish->wish_id;
-                if (!$userVote->save()) {
-                    throw new \Exception();
-                }
-                $voteRes->amount += 1;
-                if (!$voteRes->save()) {
-                    throw new \Exception();
-                }
-                $transaction->commit();
-                Yii::$app->session->setFlash('voteoneSuccess');
-            } catch (\Exception $e) {
-                $transaction->rollback();
-                Yii::$app->session->setFlash('voteoneFail');
-            }
-            return $this->redirect(Yii::$app->request->getReferrer());
-        //团体创建者 即刻结束投票且统计投票结果
-        } elseif (Yii::$app->request->get('option') == 'endvote') {
-            //判断 团体创建者，投票团队状态 和 归属 是否一一对应
-            $vote = Vote::findOne(['vote_id'=>Yii::$app->request->get('vote_id'),'status'=>1,'team_id'=>Yii::$app->session->get('team')->team_id]);
-            if (!Yii::$app->session->get('team')->isCreator() || !$vote) {throw new NotFoundHttpException('警告！越权操作！');}
-            //统计此次投票活动结果 且 状态设为 重启 或 结束
-            if (!$vote->statistics()) {
-                return $this->redirect(Yii::$app->request->getReferrer());
-            }
-            return /*$this->redirect(['team/vote','team_id'=>Yii::$app->session->get('team')->team_id,'option'=>'see'])*/;//跳转到 结果界面更好点
-        } else {
-            return $this->redirect(['site/error']);
-        }
+
     }
 
     /**
-     * 团体创建者 发起一个 投票活动 功能
+     * 团体创建者新建一个资助(投票)活动
      */
     public function actionNewvote()
     {
         //只有团体创建者才能发起投票活动
-        if (!Yii::$app->user->identity->isCreator()) {
-            throw new NotFoundHttpException('警告！越权操作！');
+        if (!Yii::$app->user->identity->isCreator()) {throw new NotFoundHttpException('警告！越权操作！');}
+        if (!isset($_SESSION['vote_wish'])) {
+            $_SESSION['vote_wish'] = [];
         }
-        //待编辑 未启动的 投票活动
-        if (Yii::$app->request->get('option') == 'see') {
-            $query = Vote::find()->where(['team_id'=>Yii::$app->session->get('team')->team_id,'status'=>0]);
+        $vote = Vote::findOne(['team_id'=>Yii::$app->session->get('team')->team_id,'status'=>0]);
+        if ($vote) {
+            $vote->_endtime = date('y-m-d H:i:s',time()+5*86400);
             $dataProvider = new ActiveDataProvider([
-                'query' => $query,
+                'query'=>Wish::find()->where(['verify_user_id'=>$vote->community->user_id,'status'=>2]),
                 'pagination' => [
                     'pagesize' => 10
                 ],
             ]);
-            return $this->render('newvote',['dataProvider'=>$dataProvider]);
-        //新建一个投票活动
-        } elseif (Yii::$app->request->get('option') == 'new') {
-            $model = new Vote(['scenario'=>'newone']);
+            return $this->render('newvote',['vote'=>$vote,'dataProvider'=>$dataProvider]);
+        } else {
+            unset($_SESSION['vote_wish']);//每当新建一个投票时，清除上一个的缓存
+            $vote = new Vote(['scenario'=>'newone']);
+            $community = Community::find()->where(['status'=>1])->asArray()->all();
+            $community = ArrayHelper::map($community,'community_id','community_name');
             if (Yii::$app->request->isPost) {
                 $post = Yii::$app->request->post();
-                if ($model->newone($post)) {
+                if ($vote->newone($post)) {
                     Yii::$app->session->setFlash('newone');
-                    return $this->redirect(['team/newvote','option'=>'see','team_id'=>Yii::$app->session->get('team')->team_id]);
+                    return $this->redirect(['team/newvote','team_id'=>Yii::$app->session->get('team')->team_id]);
                 }
             }
-            return $this->render('newvote',['model'=>$model]);
-        //编辑 启动一个 投票活动
-        } elseif (Yii::$app->request->get('option') == 'edit') {
-            //$model = Vote::findOne(['vote_id'=>Yii::$app->request->get('vote_id')]);
-            foreach (Yii::$app->session->get('team')->votes as $key => $vote) {
-                if ($vote->vote_id == Yii::$app->request->get('vote_id')) {
-                    Yii::$app->session->get('team')->_vote = $vote;
-                    $model = $vote;
-                }
-            }
-            //剔除session 中 暂时绑定投票的心愿中状态 不为 待资助的 $status 不等于2的
-            foreach ($model->vote_wish as $key => $wish) {
-                if (Wish::findOne(['wish_id'=>$wish->wish_id])->status !== 2) {
-                    unset($model->vote_wish[$wish->wish_id]);
-                }
-            }
-            $model->scenario = 'start';
-            if (Yii::$app->request->isPost) {
-                $post = Yii::$app->request->post();
-                if ($model->start($post)) {
-                    Yii::$app->session->setFlash('start',$model->vote_id);
-                    return $this->redirect(['team/newvote','option'=>'see','team_id'=>Yii::$app->session->get('team')->team_id]);
-                }
-            } else {
-                $model->_endtime = date('y-m-d H:i:s',time()+86400);
-            }
-            //心愿列表
-            $query = Wish::find()->where(['status'=>2]);
-            $dataProvider = new ActiveDataProvider([
-                'query'=>$query,
-                'pagination'=>['pagesize'=>10],
-            ]);
-            $models = $query->all();//心愿流变弹出框
-            return $this->render('newvote',['model'=>$model,'models'=>$models,'dataProvider'=>$dataProvider]);
-        //为一个投票活动 绑定或解绑一个 候选心愿
-        } elseif (Yii::$app->request->get('option') == 'bind') {
-            $wish = Wish::findOne(['wish_id'=>Yii::$app->request->get('wish_id')]);
-            if (!$wish) {
-                throw new NotFoundHttpException('操作失败，请稍后再试或反馈此问题');
-            }
-            if ($wish->status !== 2) {
-                Yii::$app->session->setFlash('overdue');
-                return $this->redirect(Yii::$app->request->getReferrer());
-            }
-            $_key = false;
-            foreach (Yii::$app->session->get('team')->_vote->vote_wish as $key => $value) {
-                if ($value->wish_id == $wish->wish_id) {
-                    $_key = $key;
-                }
-            }
-            //必须使用变量$_key做 入选/剔除 依据, 因为$key 受遍历影响 最后与$_key 值不同
-            if ($_key) {
-                unset(Yii::$app->session->get('team')->_vote->vote_wish[$_key]);
-            } else {
-                if (count(Yii::$app->session->get('team')->_vote->vote_wish) == Yii::$app->session->get('team')->_vote->candidate_num) {
-                    Yii::$app->session->setFlash('overflow');
-                } else {
-                    Yii::$app->session->get('team')->_vote->vote_wish[$wish->wish_id] = $wish;
-                }
-            }
-            return $this->redirect(Yii::$app->request->getReferrer());
+            return $this->render('newvote',['vote'=>$vote,'community'=>$community]);
         }
     }
 
+    /**
+     * 团体创建者 启动前 编辑一个资助资助(投票)活动
+     */
+    public function actionEditvote()
+    {
+        //只有团体创建者才能发起投票活动
+        if (!Yii::$app->user->identity->isCreator()) {throw new NotFoundHttpException('警告！越权操作！');}
+        $option = Yii::$app->request->get('option');
+        if ($option == 'bind') {
+            $wish = Wish::findOne(['wish_id'=>Yii::$app->request->get('wish_id')]);
+            if ($wish->status !== 2) {
+                Yii::$app->session->setFlash('blindFail','该心愿已经被其他资助者抢先绑定了！请重新选择');
+            } else {
+                if (isset($_SESSION['vote_wish'][$wish->wish_id])) {
+                    unset($_SESSION['vote_wish'][$wish->wish_id]);
+                } else{
+                    $_SESSION['vote_wish'][$wish->wish_id] = $wish;
+                }
+            }
+            return $this->redirect(['team/newvote','team_id'=>Yii::$app->session->get('team')->team_id]);
+        } elseif ($option == 'del') {
+            $vote = Vote::findOne(['status'=>0,'team_id'=>Yii::$app->session['team']->team_id]);
+            if (!$vote) {throw new NotFoundHttpException('出现了一点问题.....');}
+            $vote->delete();
+            unset($_SESSION['vote_wish']);//删除正在编辑的投票活动，则清除缓存
+            return $this->redirect(['team/newvote','team_id'=>Yii::$app->session->get('team')->team_id]);
+        } else {
+            throw new NotFoundHttpException('警告！越权操作！');
+        }
+    }
 }

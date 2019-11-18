@@ -12,9 +12,9 @@ use yii\helpers\Url;
 		<li><a href=<?=Url::to(['team/member','team_id'=>Yii::$app->request->get('team_id')])?>>团体成员</a></li>
 		<li><a href=<?=Url::to(['team/finance','team_id'=>Yii::$app->request->get('team_id')])?>>团体财务</a></li>
 		<li><a href=<?=Url::to(['team/support','team_id'=>Yii::$app->request->get('team_id')])?>>团体资助</a></li>
-		<li><a href=<?=Url::to(['team/vote','team_id'=>Yii::$app->request->get('team_id'),'option'=>'see'])?>>团体投票活动</a></li>
+		<li><a href=<?=Url::to(['team/vote','team_id'=>Yii::$app->request->get('team_id')])?>>团体资助活动</a></li>
 		<?php if(Yii::$app->session->get('team')->isCreator()): ?>
-		<li><a href=<?=Url::to(['team/newvote','team_id'=>Yii::$app->request->get('team_id'),'option'=>'see'])?>>发起资助投票</a></li>			
+		<li><a href=<?=Url::to(['team/newvote','team_id'=>Yii::$app->request->get('team_id')])?>>发起资助活动</a></li>			
 		<?php endif; ?>
 	</ul>
 	<ul id="nav_option"></ul>

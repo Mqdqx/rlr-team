@@ -46,7 +46,7 @@ $this->params['breadcrumbs'][] = '团体：'.Yii::$app->session->get('team')->na
 				<td><?=$member->email ?></td>
 				<td><?=$member->sex ?></td>
 				<td>功能待完善</td>
-				<td><?=Html::a('留言',Url::to(['site/message','option'=>'dengdeng','username'=>$member->username]),['class'=>'btn btn-info btn-xs']) ?></td>
+				<td>留言功能</td>
 			</tr>
 		<?php endforeach; ?>
 	</table>

@@ -33,7 +33,7 @@ $this->params['breadcrumbs'][] = '团体：'.Yii::$app->session->get('team')->na
 		<?php if(Yii::$app->session->hasFlash('rechargeSuccess')): ?>
 			<div class="alert alert-success alert-dismissible">
 				<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-				为团体充值成功！
+				为团体充值成功！请点击余额按钮刷新！
 			</div>
 		<?php elseif(Yii::$app->session->hasFlash('rechargeFail')): ?>
 			<div class="alert alert-warning">为团体充值失败，请稍后再试或反馈此问题！</div>
