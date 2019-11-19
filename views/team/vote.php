@@ -3,14 +3,13 @@
 /* @var $this yii\web\View */
 use yii\helpers\Html;
 use yii\helpers\Url;
-use yii\widgets\LinkPager;
 use yii\widgets\DetailView;
+use yii\grid\GridView;
 
 $this->title = '团体投票';
 $this->params['breadcrumbs'][] = ['label'=>'我的团体','url' => Url::to(['team/index'])];
 $this->params['breadcrumbs'][] = '团体：'.Yii::$app->session->get('team')->name;
-$button = ['success'=>'查看结果','info'=>'进入投票','warning'=>'查看结果'];
-
+$showRes = ['text'=>[1=>'胜出',2=>'淘汰'],'class'=>[1=>'btn btn-info btn-xs',2=>'btn btn-warning btn-xs']];
 ?>
 
 <div class="row">
@@ -22,20 +21,46 @@ $button = ['success'=>'查看结果','info'=>'进入投票','warning'=>'查看�
 	<?php if(Yii::$app->request->get('option') == 'see'): ?>
 
 		<h3>团体投票活动</h3>
-		<?php elseif(Yii::$app->session->hasFlash('start')): ?>
+		<?php if(Yii::$app->session->hasFlash('start')): ?>
 		<div class="alert alert-success alert-dismissible">
 			<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 			投票活动： <?=Yii::$app->session->getFlash('start') ?> 启动成功！
 		</div>
+		<?php endif; ?>
+		<?=GridView::widget([
+			'dataProvider'=>$dataProvider,
+			'layout'=>"{items}\n{pager}",
+			'emptyText'=>'无资助活动',
+			'columns'=>[
+				'vote_id',
+				['attribute'=>'starttime','value'=>function($model) {return date('y-m-d H:i:s',$model->starttime);}],
+				['attribute'=>'endtime','value'=>function($model) {return date('y-m-d H:i:s',$model->endtime);}],
+				['label'=>'隶属社区','attribute'=>'community_id','value'=>function($model) {return $model->community->community_name;}],
+				['label'=>'当前状态','attribute'=>'status','value'=>function($model) {return $model::$_status[$model->status] ;}],
+
+				[
+					'class'=>'yii\grid\ActionColumn',
+					'header'=>'投票/详情',
+					'template'=>'{detail}',
+					'buttons'=>[
+						'detail'=>function($url,$model,$key) {
+							$button = ['1'=>'进入投票','2'=>'查看结果'];
+							return Html::a($button[$model->status],Url::to(['team/vote','option'=>'detail','vote_id'=>$model->vote_id ,'team_id'=>Yii::$app->session['team']->team_id]),['class'=>'btn btn-info btn-xs']);
+						}
+					],
+				],
+			],
+		]) ?>
+
 		
 
-	<?php elseif(Yii::$app->request->get('option') == 'vote'): ?>
+	<?php elseif(Yii::$app->request->get('option') == 'detail'): ?>
 
 		<h3>
 			团体投票活动
 			<?=$vote->vote_id ?><?=Html::a('返回上一页',Url::to(['team/vote','option'=>'see','team_id'=>Yii::$app->session->get('team')->team_id ]),['class'=>'btn btn-info']) ?>
-			<?php if(Yii::$app->session->get('team')->isCreator()): ?>
-			<?=Html::a('立即结束投票',Url::to(['team/vote','team_id'=>Yii::$app->session->get('team')->team_id,'option'=>'endvote','vote_id'=>$vote->vote_id]),['class'=>'btn btn-warning','data-confirm'=>'您确定立即结束投票且统计结果吗？']) ?>
+			<?php if($vote->status==1 && Yii::$app->session->get('team')->isCreator()): ?>
+			<?=Html::a('立即结束投票',Url::to(['team/editvote','team_id'=>Yii::$app->session->get('team')->team_id,'option'=>'endvote','vote_id'=>$vote->vote_id]),['class'=>'btn btn-warning','data-confirm'=>'您确定立即结束投票且统计结果吗？']) ?>
 			<?php endif; ?>
 		</h3>
 		<?php if(Yii::$app->session->hasFlash('voteoneSuccess')): ?>
@@ -48,27 +73,27 @@ $button = ['success'=>'查看结果','info'=>'进入投票','warning'=>'查看�
 				<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 				投票失败！服务器繁忙，请稍后重试或反馈此问题！
 			</div>
-		<?php elseif(Yii::$app->session->hasFlash('noComplete')): ?>
-			<div class="alert alert-warning alert-dismissible">
-				<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-				还有团体成员尚未投票，无法即刻结束投票！
-			</div>
 		<?php elseif(Yii::$app->session->hasFlash('noMinballot')): ?>
 			<div class="alert alert-warning alert-dismissible">
 				<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-				存在多个票数最少的心愿，已重启投票活动！
+				存在多个心愿最小票数，且有成员未参与投票，已发送邮件告知！请耐心等待可行结果的出现在结算
 			</div>
-		<?php elseif(Yii::$app->session->hasFlash('statisticsFail')): ?>
+		<?php elseif(Yii::$app->session->hasFlash('reset')): ?>
 			<div class="alert alert-warning alert-dismissible">
 				<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-				操作失败，服务器繁忙，请稍后再试！
+				<?=Yii::$app->session->getFlash('reset') ?>
+			</div>
+		<?php elseif(Yii::$app->session->hasFlash('statistics')): ?>
+			<div class="alert alert-warning alert-dismissible">
+				<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<?=Yii::$app->session->getFlash('statistics') ?>
 			</div>
 		<?php endif; ?>
 		<table class="table table-striped table-bordered">
 			<tr><th class="col-lg-2">投票主题</th><td colspan="3"><?=Html::encode($vote->title) ?></td></tr>
 			<tr><th class="col-lg-2">当前状态</th><td colspan="3"><?=Html::encode($vote::$_status[$vote->status]) ?></td></tr>
-			<tr><th class="col-lg-2">开始时间</th><td colspan="3"><?=date('y-m-d H:i:s',$vote->starttime) ?></td></tr>
-			<tr><th class="col-lg-2">结束时间</th><td colspan="3"><?=date('y-m-d H:i:s',$vote->endtime) ?></td></tr>
+			<tr><th class="col-lg-2">开始时间</th><td colspan="3"><?=date('y年m月d日',$vote->starttime) ?></td></tr>
+			<tr><th class="col-lg-2">结束时间</th><td colspan="3"><?=date('y年m月d日',$vote->endtime) ?></td></tr>
 			<tr><th class="col-lg-2">候选者</th><th class="col-lg-1">心愿详情</th><th>所得票数  <span style="color:red">(此次投票活动您还剩  <?=$vote->surplus() ?>  票)</span></th><th class="col-lg-1">投票</th></tr>
 			<?php foreach($vote->wishs as $wish): ?>
 			<?php
@@ -87,6 +112,7 @@ $button = ['success'=>'查看结果','info'=>'进入投票','warning'=>'查看�
 					</div>
 				</td>
 				<td class="col-lg-1">
+				<?php if ($vote->status == 1): ?>
 					<?php if($vote->showButton($wish->wish_id) == 'voted'): ?>
 					<?=Html::tag('button','已投一票',['class'=>'btn btn-info btn-xs disabled']) ?>
 					<?php elseif($vote->showButton($wish->wish_id) == 'insufficient'): ?>
@@ -94,6 +120,9 @@ $button = ['success'=>'查看结果','info'=>'进入投票','warning'=>'查看�
 					<?php elseif($vote->showButton($wish->wish_id) == 'vote'): ?>
 					<?=Html::a('投其一票',Url::to(['team/vote','option'=>'voteone','vote_id'=>$vote->vote_id,'wish_id'=>$wish->wish_id,'team_id'=>Yii::$app->session->get('team')->team_id]),['class'=>'btn btn-info btn-xs','data-confirm'=>'您确定投其一票吗？']) ?>
 					<?php endif; ?>
+				<?php elseif($vote->status == 2): ?>
+					<?=Html::tag('button',$showRes['text'][$wish->getVoteRes($vote->vote_id)->result],['class'=>$showRes['class'][$wish->getVoteRes($vote->vote_id)->result]]) ?>
+				<?php endif; ?>
 				</td>
 			</tr>
 			<?php endforeach; ?>
@@ -132,7 +161,6 @@ $button = ['success'=>'查看结果','info'=>'进入投票','warning'=>'查看�
 			</div>
 			</div>
 		<?php endforeach; ?>
-
 	<?php endif; ?>
 
 	</div>

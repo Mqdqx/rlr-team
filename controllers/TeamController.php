@@ -209,9 +209,51 @@ class TeamController extends Controller
     /**
      * 团体投票活动功能
      */
-    public function actionVote()
+    public function actionVote($option)
     {
+        if ($option == 'see') {
+            //历史列表
+            $dataProvider = new ActiveDataProvider([
+                'query'=>Vote::find()->where(['and','team_id='.Yii::$app->session['team']->team_id,['or','status=1','status=2']]),
+                'pagination' => [
+                    'pagesize' => 10
+                ],
+                'sort' => ['defaultOrder'=>['starttime'=>SORT_DESC]],
+            ]);
 
+            return $this->render('vote',['dataProvider'=>$dataProvider]);
+        } elseif ($option == 'detail') {
+            //参加一次投票活动
+            $vote = Vote::findOne(['vote_id'=>Yii::$app->request->get('vote_id')]);
+
+            return $this->render('vote',['vote'=>$vote]);
+        } elseif ($option == 'voteone') {
+            $vote_id = Yii::$app->request->get('vote_id');
+            $wish_id = Yii::$app->request->get('wish_id');
+            //验证是否为恶意get刷票
+            $user_vote = UserVote::findOne(['vote_id'=>$vote_id,'wish_id'=>$wish_id,'user_id'=>Yii::$app->user->identity->user_id]);
+            $surplus = Vote::findOne(['vote_id'=>$vote_id,'status'=>1])->surplus();
+            if (($surplus == 0) || $user_vote) {return $this->redirect(['site/error']);}
+            $transaction = Yii::$app->db->beginTransaction();
+            try {//下次重写时可以试试 $user_vote = new UserVote([''=>,''=>])
+                $user_vote = new UserVote();
+                $user_vote->user_id = Yii::$app->user->identity->user_id;
+                $user_vote->vote_id = $vote_id;
+                $user_vote->wish_id = $wish_id;
+                if (!$user_vote->save()) {throw new \Exception();}
+                $vote_res = VoteRes::findOne(['vote_id'=>$vote_id,'wish_id'=>$wish_id]);
+                $vote_res->amount = $vote_res->amount + 1;
+                if (!$vote_res->save()) {throw new \Exception();}
+                $transaction->commit();
+                Yii::$app->session->setFlash('voteoneSuccess');
+            } catch (\Exception $e) {
+                $transaction->rollback();
+                Yii::$app->session->setFlash('voteoneFail');
+            }
+            return $this->redirect(['team/vote','option'=>'detail','vote_id'=>$vote_id,'team_id'=>Yii::$app->session['team']->team_id]);
+        } else {
+            throw new NotFoundHttpException("警告！越权操作！");
+        }
     }
 
     /**
@@ -226,13 +268,50 @@ class TeamController extends Controller
         }
         $vote = Vote::findOne(['team_id'=>Yii::$app->session->get('team')->team_id,'status'=>0]);
         if ($vote) {
-            $vote->_endtime = date('y-m-d H:i:s',time()+5*86400);
             $dataProvider = new ActiveDataProvider([
                 'query'=>Wish::find()->where(['verify_user_id'=>$vote->community->user_id,'status'=>2]),
                 'pagination' => [
                     'pagesize' => 10
                 ],
             ]);
+            if (Yii::$app->request->isPost) {
+                //验证想绑定的心愿是否被其它资助者抢先  ！！！ 注意 asArray() 取出来的数组值皆为字符串类型string  ！！！
+                $models = Wish::find()->where(['in', 'wish_id', array_keys($_SESSION['vote_wish'])])->asArray()->all();
+                foreach ($models as $key => $wish) {
+                    if ($wish['status'] !== '2') {// 2 为字符串类型
+                        unset($_SESSION['vote_wish'][$wish['wish_id']]);
+                        Yii::$app->session->setFlash('blindFail',$wish['wish_id'].'心愿已经被其他资助者抢先绑定了！请重新选择');
+                        //直接跳出循环及方法
+                        $vote->_endtime = date('y-m-d H:i:s',time()+5*86400);
+                        return $this->render('newvote',['vote'=>$vote,'dataProvider'=>$dataProvider]);
+                    }
+                }
+                //验证完 心愿数据并未过期，则验证是否为针对只取一个心愿候选一个心愿投票资助
+                $post = Yii::$app->request->post();
+                if (count($_SESSION['vote_wish']) == 1 && $post['Vote']['support_num'] == '2') {
+                    Yii::$app->session->setFlash('blindFail','候选心愿与计划资助人数矛盾！请重新选择');
+                    //直接跳出循环及方法
+                    $vote->_endtime = date('y-m-d H:i:s',time()+5*86400);
+                    return $this->render('newvote',['vote'=>$vote,'dataProvider'=>$dataProvider]);
+                }
+                //验证团体 当前余额 是否 大于计划资助所以心愿总期望金额 最小余额
+                $minBalance = 0;
+                foreach ($_SESSION['vote_wish'] as $key => $wish) {
+                    $minBalance = $minBalance + $wish->money;
+                }
+                if ($minBalance*$vote->community->minpercent*0.01 > Yii::$app->session['team']->balance) {
+                    Yii::$app->session->setFlash('blindFail','团体余额不足以启动该资助活动，请为团体充值');
+                    $vote->_endtime = date('y-m-d H:i:s',time()+5*86400);
+                    return $this->render('newvote',['vote'=>$vote,'dataProvider'=>$dataProvider]);
+                }
+                //所有验证通过后则load() validate() save()......
+                if ($vote->start($post)) {
+                    Yii::$app->session->setFlash('start',$vote->vote_id);
+                    return $this->redirect(['team/vote','option'=>'see','team_id'=>Yii::$app->session['team']->team_id]);
+                }
+            } else {
+                $vote->_endtime = date('y-m-d H:i:s',time()+5*86400);
+            }
             return $this->render('newvote',['vote'=>$vote,'dataProvider'=>$dataProvider]);
         } else {
             unset($_SESSION['vote_wish']);//每当新建一个投票时，清除上一个的缓存
@@ -256,6 +335,7 @@ class TeamController extends Controller
     public function actionEditvote()
     {
         //只有团体创建者才能发起投票活动
+        //因为没有人写前端，导致视图过多a标签，则后端的数据验证任务繁重而漏洞百出，如若直接url跳至此，因为没写验证又想分割action，就缺少了session和model(vote)，
         if (!Yii::$app->user->identity->isCreator()) {throw new NotFoundHttpException('警告！越权操作！');}
         $option = Yii::$app->request->get('option');
         if ($option == 'bind') {
@@ -276,6 +356,38 @@ class TeamController extends Controller
             $vote->delete();
             unset($_SESSION['vote_wish']);//删除正在编辑的投票活动，则清除缓存
             return $this->redirect(['team/newvote','team_id'=>Yii::$app->session->get('team')->team_id]);
+        } elseif ($option == 'endvote') {
+            $vote_id = Yii::$app->request->get('vote_id');
+            $vote = Vote::findOne(['vote_id'=>$vote_id,'status'=>1]);
+            if (!$vote) {throw new NotFoundHttpException('警告！越权操作！');}
+            $minBallot = $vote->findMinballot();
+            $noVote = $vote->noComplete();
+            if (count($vote->res)==1) {
+                //如果只有一个候选者心愿满足统计结果
+                //统计结果 发送邮件
+                $vote->statistics();
+            } elseif ((!$minBallot) && $noVote) {
+                //若存在并行最小 并且还有团体成员没有投票
+                //发送邮件提醒未投票成员参与
+                foreach ($noVote as $k => $user) {
+                    $mailer = Yii::$app->mailer->compose('vote',['vote_id'=>$vote->vote_id,'team_name'=>Yii::$app->session['team']->name ,'email'=>$user['email']]);
+                    $mailer->setFrom(Yii::$app->params['senderEmail']);
+                    $mailer->setTo($user['email']);
+                    $mailer->setSubject('人恋人平台-投票活动提醒');
+                    $mailer->send();
+                }
+                Yii::$app->session->setFlash('noMinballot');
+            } elseif ((!$minBallot) && (!$noVote)) {
+                //若存在并行最小 并且所有成员都参与了投票
+                //结束时间延长一天 且 清空当前投票结果
+                $vote->reset();
+            } else {
+                //满足统计结果
+                //统计结果 发送邮件
+                $vote->statistics();
+            }
+
+            return $this->redirect(['team/vote','option'=>'detail','vote_id'=>$vote_id ,'team_id'=>Yii::$app->session['team']->team_id]);
         } else {
             throw new NotFoundHttpException('警告！越权操作！');
         }

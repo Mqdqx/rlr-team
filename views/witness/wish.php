@@ -283,7 +283,7 @@ $this->params['breadcrumbs'][] = $this->title;
 								<?php endif; ?>
 
 								<?php if($model->locking_team_id !== 0): ?>
-								<dt>资助团队：</dt><dd><?=$model->getUsername('team') ?></dd>
+								<dt>资助团队：</dt><dd><?=$model->getUsername('sponsor') ?></dd>
 								<dt>资助时间：</dt><dd><?=$model->getTime($model->locking_time) ?></dd>
 								<?php endif; ?>
 

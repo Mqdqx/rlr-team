@@ -217,6 +217,9 @@ class Wish extends \yii\db\ActiveRecord
             case '4':
                 $status = '个人资助中';
                 break;
+            case '5':
+                $status = '团体绑定待协商';
+                break;
             case '6':
                 $status = '团体资助中';
                 break;
@@ -314,7 +317,7 @@ class Wish extends \yii\db\ActiveRecord
     }
 
     /**
-     * 穿透投票活动vote_id 返回该心愿在这次投票活动中实时的所得票数
+     * 通过投票活动vote_id 返回该心愿在这次投票活动中实时的所得票数
      */
     public function getVoteRes($vote_id)
     {

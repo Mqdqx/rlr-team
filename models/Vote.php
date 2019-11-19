@@ -7,6 +7,7 @@ use app\models\Wish;
 use app\models\Community;
 use app\models\VoteRes;
 use app\models\UserVote;
+use yii\helpers\ArrayHelper;
 
 /**
  * This is the model class for table "vote".
@@ -66,9 +67,11 @@ class Vote extends \yii\db\ActiveRecord
             [['title'],'string','max'=>30,'on'=>['newone']],
 
             [['support_num','candidate_num','_endtime'],'required','on'=>['start']],
+            ['_endtime','safe','on'=>'start'],
 
             [['team_id', 'community_id','support_num', 'candidate_num', 'createtime','starttime', 'endtime', 'status','version'], 'integer'],
             [['title'], 'string', 'max' => 255],
+            ['_endtime','safe'],
         ];
     }
 
@@ -118,9 +121,9 @@ class Vote extends \yii\db\ActiveRecord
     }
 
     /**
-     * 格式化显示临时捆绑的的候选人心愿
+     * 格式化显示临时捆绑的的候选人心愿，重写后 抛弃此方法
      */
-    public function vote_wish()
+    /*public function vote_wish()
     {
         $info = '';
         if (count($this->vote_wish) == 0) {
@@ -134,12 +137,13 @@ class Vote extends \yii\db\ActiveRecord
             }
         }
         return $info;
-    }
+    }*/
 
     /**
      * 投票活动 实时 肩负 金额 
+     * 放弃此 方法， 因为session过期性没有考虑
      */
-    public function getMoney()
+    /*public function getMoney()
     {
         $money = 0;
         if (!Yii::$app->session->get('team')->_vote) {
@@ -152,7 +156,7 @@ class Vote extends \yii\db\ActiveRecord
             $money += $wish->money;
         }
         return $money;
-    }
+    }*/
 
     /**
      * 表格行颜色
@@ -188,6 +192,7 @@ class Vote extends \yii\db\ActiveRecord
      */
     public function start($data)
     {
+        $this->scenario = 'start';
         if ($this->load($data) && $this->validate()) {
             $this->endtime = strtotime($this->_endtime);//日期格式的字符串 转 时间戳
             $this->status = 1;
@@ -197,7 +202,7 @@ class Vote extends \yii\db\ActiveRecord
                 if (!$this->save()) {
                     throw new \Exception();
                 }
-                foreach ($this->vote_wish as $key => $wish) {
+                foreach ($_SESSION['vote_wish'] as $key => $wish) {
                     $wish->locking_team_id = $this->team_id;
                     $wish->status = 7;
                     $wish->locking_time = time();
@@ -243,7 +248,7 @@ class Vote extends \yii\db\ActiveRecord
     }
 
     /**
-     * 通关 user_id 判断该用户对于此次投票还有 几张票
+     * 通过 user_id 判断该用户对于此次投票还有 几张票
      */
     public function surplus()
     {
@@ -254,18 +259,26 @@ class Vote extends \yii\db\ActiveRecord
 
     /**
      * 判断是不是所有参与团体成员都投完了票
+     * 全投完返回 false,否则返回未投成员[[User]]数组asArray()
      */
-    public function isComplete()
+    public function noComplete()
     {
-        $total = 0;
-        foreach ($this->res as $key => $res) {
-            $total += $res->amount;
+        $noVote = [];
+        $poll = UserVote::find()->where(['vote_id'=>$this->vote_id])->asArray()->all();
+        $poll = ArrayHelper::map($poll,'id','user_id');
+        foreach (Yii::$app->session['team']->getMember()->asArray()->all() as $key => $user) {
+            if (!in_array($user['user_id'], $poll)) {
+                $noVote[$user['user_id']] = $user;
+            }
         }
-        return ($total == (Yii::$app->session->get('team')->getMember()->count()*$this->support_num)) ? true : false;
+        if (count($noVote) == 0) {
+            return false;
+        }
+        return $noVote;
     }
 
     /**
-     * 统计结果是 取出票数最少的心愿wish_id，存在并行最小则 返回false
+     * 统计结果是 取出票数最少的心愿Wish，存在并行最小则 返回false
      */
     public function findMinballot()
     {
@@ -283,35 +296,26 @@ class Vote extends \yii\db\ActiveRecord
         if (count($minBallot) == 2) {
             return false;
         }
-        return $minBallot[0]->wish_id;
+        return $minBallot[0];
     }
 
     /**
-     * 统计结果前的判断 以及  统计结果
+     * 无多个最低候选 情况下 统计结果
      */
     public function statistics()
     {
-        //是否所有成员都投票 足够的票数
-        if (!$this->isComplete()) {
-            Yii::$app->session->setFlash('noComplete');
-            return false;
-        }
-        //是否只有一个 最低票 返回 wish_id
-        $minBallot = $this->findMinballot();
-        if (!$minBallot) {
-            Yii::$app->session->setFlash('noMinballot');
-            return false;
-        }
         //开始逐步处理各心愿
         $transaction = Yii::$app->db->beginTransaction();
         try {
-            //voteRes 数组重建 wish_id=>(object)Wish
+            $this->status = 2;//改变此投票的状态为 已经结束
+            if (!$this->save()) {throw new \Exception();}
+            //voteRes 数组重建 wish_id=>(object)VoteRes
             $_res = [];
             foreach ($this->res as $k => $voteres) {
                 $_res[$voteres->wish_id] = $voteres;
             }
             foreach ($this->wishs as $key => $wish) {
-                if ($wish->wish_id == $minBallot) {
+                if ($wish->wish_id == $this->findMinballot()->wish_id && count($this->res) !== 1) {
                     $wish->locking_team_id = 0;//解绑团体
                     $wish->status = 2;//放回心愿池
                     $_res[$wish->wish_id]->result = 2;//淘汰
@@ -320,12 +324,30 @@ class Vote extends \yii\db\ActiveRecord
                     $_res[$wish->wish_id]->result = 1;//胜出
                 }
                 if (!$wish->save()) {throw new \Exception();}
-                if (!$_res[$wish->wish_id]->save()) {throw new \Exception();}
+                //发邮件通知见证人 和 心愿胜出者
+                if ($wish->status == 5) {
+                    //见证人
+                    $mailer = Yii::$app->mailer->compose('wish_support',['name'=>$wish->getUsername('verify'),'role'=>'witness','wish_id'=>$wish->wish_id]);
+                    $mailer->setFrom(Yii::$app->params['senderEmail']);
+                    $mailer->setTo($wish->witness->email);
+                    $mailer->setSubject('人恋人平台-心愿进展通知');
+                    $mailer->send();
+                    //受资助者
+                    $mailer = Yii::$app->mailer->compose('wish_support',['name'=>$wish->getUsername('wish'),'role'=>'vip','wish_id'=>$wish->wish_id]);
+                    $mailer->setFrom(Yii::$app->params['senderEmail']);
+                    $mailer->setTo($wish->user->email);
+                    $mailer->setSubject('人恋人平台-心愿进展通知');
+                    $mailer->send();
+                }
+                if (!$_res[$wish->wish_id]->save()) {throw new \Exception();}//VoteRes::save()
             }
-            $transaction->commit();//成功了无需提醒，直接跳转到投票活动列表，又或者结果界面
+            $transaction->commit();//成功了无需提醒，直接结果界面
+            Yii::$app->session->setFlash('statistics','结算成功，请耐心等待相关见证人联系您办理后续手续！');
         } catch (\Exception $e) {
             $transaction->rollback();
-            Yii::$app->session->setFlash('statisticsFail');
+            var_dump($e);
+            die();
+            Yii::$app->session->setFlash('statistics','结算失败，可能是服务器繁忙，请稍后再试或反馈此问题');
             return false;
         }
         return true;
@@ -336,7 +358,20 @@ class Vote extends \yii\db\ActiveRecord
      */
     public function reset()
     {
-        //
-        return false;
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+            $this->endtime = $this->endtime + 86400;
+            if (!$this->save()) {throw new \Exception();}
+            if (!UserVote::deleteAll(['vote_id'=>$this->vote_id])) {throw new \Exception();}
+            foreach ($this->res as $key => $res) {
+                $res->amount = 0;
+                if (!$res->save()) {throw new \Exception();}
+            }
+            Yii::$app->session->setFlash('reset','存在多个最低票候选者，已经为您重启投票且延长了一天自动结束时间');
+            $transaction->commit();
+        } catch (\Exception $e) {
+            Yii::$app->session->setFlash('reset','存在多个最低票候选者，重启尝试失败，请稍后再试或反馈此问题');
+            $transaction->rollback();
+        }
     }
 }

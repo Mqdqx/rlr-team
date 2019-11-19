@@ -65,8 +65,16 @@ $this->params['breadcrumbs'][] = '团体：'.Yii::$app->session->get('team')->na
 	        		],
 				]);
 			?>
-			<?= $form->field($vote, 'support_num')->textInput()->label('最终资助人数'); ?>
-			<?= $form->field($vote, 'candidate_num')->textInput()->label('当前候选人数'); ?>
+			<?php if (count($vote->vote_wish) == 1): ?>
+			<?= $form->field($vote, 'support_num')->textInput(['value'=>1,'readonly'=>true])->label('最终资助人数'); ?>
+			<?php elseif (count($vote->vote_wish) == 0): ?>
+			<?= $form->field($vote, 'support_num')->textInput(['placeholder'=>'请从下发心愿池选取候选者','value'=>'','readonly'=>true])->label('最终资助人数'); ?>
+			<?php else: ?>
+			<?= $form->field($vote, 'support_num')->textInput(['value'=>count($vote->vote_wish)-1,'readonly'=>true])->label('最终资助人数'); ?>
+			<?php endif ?>
+			
+
+			<?= $form->field($vote, 'candidate_num')->textInput(['value'=>count($vote->vote_wish),'readonly'=>true])->label('当前候选人数'); ?>
 			<?= $form->field($vote, '_endtime')->widget(
         		DateTimePicker::className(), [
         			// inline too, not bad
@@ -175,6 +183,7 @@ $this->params['breadcrumbs'][] = '团体：'.Yii::$app->session->get('team')->na
 	        </div>
 		</div>
 		<?php ActiveForm::end(); ?>
+
 	<?php endif ?>
 
 	</div>
