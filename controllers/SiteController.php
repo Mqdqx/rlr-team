@@ -39,7 +39,7 @@ class SiteController extends Controller
             //无权限访问过滤且报错
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['logout','message','contact','personalinfo','register_vip','register_community','getcity'],
+                'only' => ['logout','message','contact','personalinfo','register_vip','register_community','getcity','find_password'],
                 'rules' => [
                     [
                         'actions' => ['logout','message','contact','personalinfo','getcity'],
@@ -47,7 +47,7 @@ class SiteController extends Controller
                         'roles' => ['@'],
                     ],
                     [
-                        'actions' => ['register_vip','register_community'],
+                        'actions' => ['register_vip','register_community','find_password'],
                         'allow' => true,
                         'roles' => ['?'],
                     ],
@@ -429,4 +429,57 @@ class SiteController extends Controller
         echo json_encode($city);
     }
 
+    /**
+     * 忘记密码邮件重置
+     */
+    public function actionFind_password()
+    {
+        $option = Yii::$app->request->get('option');
+        if ($option == 'send') {
+            $user = new User(['scenario'=>'send']);
+            if (Yii::$app->request->isPost) {
+                $post = Yii::$app->request->post();
+                if ($user->load($post) && $user->validate()) {
+                    $user = User::findOne(['email'=>$user->email]);
+                    $user->token = $user->createToken();
+                    if ($user->save()) {
+                        $mailer = Yii::$app->mailer->compose('find_password',['email'=>$user->email,'token'=>$user->token]);
+                        $mailer->setFrom(Yii::$app->params['senderEmail']);
+                        $mailer->setTo($user->email);
+                        $mailer->setSubject("人恋人平台-密码重置");
+                        $mailer->send();
+                        Yii::$app->session->setFlash('find_password','发送成功，请前往邮箱链接重置密码！');
+                        return $this->redirect(['site/find_password','option'=>'tip']);
+                    }
+                }
+            }
+        } elseif ($option == 'reset') {
+            $email = Yii::$app->request->get('email');
+            $token = Yii::$app->request->get('token');
+            $user = User::findOne(['email'=>$email,'token'=>$token]);
+            if (!$user) {throw new NotFoundHttpException("无效访问！");}
+            $user->password = '';
+            $user->scenario = 'reset';
+            if (Yii::$app->request->isPost) {
+                $post = Yii::$app->request->post();
+                if ($user->load($post) && $user->validate()) {
+                    $user->password = password_hash($user->password, PASSWORD_DEFAULT);
+                    //用于后续save时保证可以通关验证
+                    $user->repassword = $user->password;
+                    $user->loginip = $user->getIp();
+                    $user->logintime = time();
+                    $user->token = $user->createToken();
+                    if ($user->save()) {
+                        Yii::$app->session->setFlash('find_password','密码重置成功，之后请用新密码登录！');
+                        return $this->redirect(['site/find_password','option'=>'tip']);
+                    }
+                }
+            }
+        } elseif ($option == 'tip') {
+            $user = null;
+        } else {
+            throw new NotFoundHttpException("无效访问！");
+        }
+        return $this->render('find_password',['user'=>$user]);
+    }
 }

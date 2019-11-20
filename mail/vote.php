@@ -5,8 +5,5 @@
 
 <p>可能因为缺少您的参与而延期某项资助活动，请积极投票！ 谢谢！</p>
 
-<?php $url = Yii::$app->urlManager->createAbsoluteUrl(['site/login']); ?>
-<p><a href="<?php echo $url; ?>">__点击前往登录__</a></p>
-
 <p>如有疑问或发现漏洞，请及时联系我们！</p>
 <p>该邮件为系统自动发送，请勿回复！</p>

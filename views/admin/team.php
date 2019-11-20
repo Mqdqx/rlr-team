@@ -4,7 +4,6 @@
 use yii\bootstrap\ActiveForm;
 use yii\helpers\Url;
 use yii\helpers\Html;
-use yii\widgets\LinkPager;
 
 $this->title = '团体管理';
 $this->params['breadcrumbs'][] = ['label'=>'应用中心','url' => Url::to([Yii::$app->user->identity->role.'/index'])];
@@ -22,22 +21,8 @@ $this->params['breadcrumbs'][] = $this->title;
 		</ul>
 		<!-- 横向导航 -->
 		<div>
-			<h3><?= Html::encode($data) ?></h3>
+			<?=Html::a('投票定时任务',Url::to(['admin/team','option'=>'cron']),['class'=>'btn btn-info']) ?>
 		</div>
-		<!-- 查询栏 -->
-		<div>
-			<nav class="navbar navbar-default">
-				<div class="container-fluid"> 
-				<div class="navbar-header"><span class="navbar-brand">团体查询</span></div>
-				<form class="navbar-form navbar-left" role="search">
-					<div class="form-group"><input type="text" class="form-control" placeholder="输入关键词查询团体"></div>
-					<button type="button" class="btn btn-default" aria-label="Left Align">
-						<span class="glyphicon glyphicon-search" aria-hidden="true"></span>
-					</button>
-				</form>
-				</div>
-			</nav>
-		</div>
-		<!-- 查询栏 -->
+		<?php if(isset($result)) {var_dump($result);} ?>
 	</div>
 </div>

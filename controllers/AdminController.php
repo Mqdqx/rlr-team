@@ -9,6 +9,8 @@ use yii\web\Controller;
 use yii\filters\VerbFilter;
 use yii\data\ActiveDataProvider;
 use app\models\User;
+use app\models\Vote;
+use app\models\Flows;
 use app\models\Community;
 
 class AdminController extends Controller
@@ -89,8 +91,14 @@ class AdminController extends Controller
      */
     public function actionFinance()
     {
-        $data = '平台余额和流水';
-        return $this->render('finance',['data'=>$data]);
+        $balance = (new \yii\db\Query)->select([])->from('user')->sum('balance');
+        $balance += (new \yii\db\Query)->select([])->where(['status'=>1])->from('flows')->sum('money');
+        $dataProvider = new ActiveDataProvider([
+            'query'=>Flows::find()->where(['status'=>1]),
+            'pagination' => ['pagesize' => 10],
+        ]);
+
+        return $this->render('finance',['balance'=>$balance,'dataProvider'=>$dataProvider]);
     }
 
     /**
@@ -134,9 +142,52 @@ class AdminController extends Controller
      */
     public function actionTeam()
     {
-        //
-        $data = '团体管理';
-        return $this->render('team',['data'=>$data]);
+        if (Yii::$app->request->get('option')=='cron') {
+            $dawnYest = 86400+strtotime(date("Y-m-d"),time());//明天0点0分1秒
+            $models = Vote::findAll(['status'=>1]);
+            $result = [];
+            foreach ($models as $key => $vote) {
+                Yii::$app->session->set('team',$vote->team);
+                //如果此状态为进行中的投票活动自动结束时间在 明天0-0-0到24-59-59中
+                if ($vote->endtime>$dawnYest && $vote->endtime<$dawnYest+86400) {
+                    $minBallot = $vote->findMinballot();
+                    $noVote = $vote->noComplete();
+                    if (count($vote->res)==1) {
+                        //如果只有一个候选者心愿则满足统计结果
+                        //统计结果 发送邮件
+                        $vote->statistics();
+                    } elseif ((!$minBallot) && $noVote) {
+                        //若存在并行最小 并且还有团体成员没有投票
+                        //发送邮件提醒未投票成员参与
+                        foreach ($noVote as $k => $user) {
+                            $mailer = Yii::$app->mailer->compose('vote',['vote_id'=>$vote->vote_id,'team_name'=>Yii::$app->session['team']->name ,'email'=>$user['email']]);
+                            $mailer->setFrom(Yii::$app->params['senderEmail']);
+                            $mailer->setTo($user['email']);
+                            $mailer->setSubject('人恋人平台-投票活动提醒');
+                            $mailer->send();
+                        }
+                        Yii::$app->session->setFlash('noMinballot');
+                    } elseif ((!$minBallot) && (!$noVote)) {
+                        //若存在并行最小 并且所有成员都参与了投票
+                        //结束时间延长一天 且 清空当前投票结果
+                        $vote->reset();
+                    } else {
+                        //满足统计结果
+                        //统计结果 发送邮件
+                        $vote->statistics();
+                    }
+                    //$result[$vote->vote_id]缓存结果
+                    $flash = ['voteoneSuccess','voteoneFail','noMinballot','reset','statistics'];
+                    foreach ($flash as $key => $value) {
+                        if (Yii::$app->session->hasFlash($value)) {$result[$vote->vote_id] = Yii::$app->session->getFlash($value);}
+                    }
+                    file_put_contents('../log/votelog.txt','|___'.date('YmdHis').'*'.json_encode($result).'___|'.PHP_EOL,FILE_APPEND);//写入日志                
+                }
+            }
+            return $this->render('team',['result'=>$result]);
+        }
+
+        return $this->render('team');
     }
 
     /**

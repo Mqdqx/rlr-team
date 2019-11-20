@@ -35,6 +35,7 @@ $titles = ['flows'=>'账单','recharge'=>'充值','withdraw'=>'提现'];
 		<?php if(Yii::$app->request->get('option') == 'flows'): ?>
 
 		<?php elseif(Yii::$app->request->get('option') == 'recharge'): ?>
+
 			<?php if(Yii::$app->session->hasFlash('paySuccess')): ?>
 				<div class="alert alert-success">付款成功！服务器可能存在延迟，请稍后刷新再验证到账！</div>
 			<?php elseif(Yii::$app->session->hasFlash('payFail')): ?>
@@ -53,12 +54,27 @@ $titles = ['flows'=>'账单','recharge'=>'充值','withdraw'=>'提现'];
 			<?php ActiveForm::end(); ?>
 		
 		<?php elseif(Yii::$app->request->get('option') == 'withdraw'): ?>
+			<?php if(Yii::$app->session->hasFlash('withdraw')): ?>
+				<div class="alert alert-success"><?=Yii::$app->session->getFlash('withdraw') ?></div>
+			<?php endif; ?>
+			<?php 
+				$form = ActiveForm::begin([
+					'layout'=>'horizontal',
+					'fieldConfig'=>['template'=>"
+						<div class=\"col-lg-3\">{input}</div>
+						<button type\"submit\" class=\"btn btn-info\" data-confirm=\"您确定提现如上金额吗？我们将锁定您输入的金额\">提现</button>\n
+						<div class=\"col-lg-3\">{error}</div>"]
+				]); 
+			?>
+			<?=$form->field($model,'money')->textInput(['placeholder'=>'请输入整数提现金额']) ?>
+			<?php ActiveForm::end(); ?>
 			
 		<?php endif; ?>
 
 		<table class="table table-hover">
 			<tr><th>转账时间</th><th>支出方</th><th>收入方</th><th>金额</th><th>账单类型</th><th>当前状态</th><th>详情</th></tr>
 			<?php foreach($models as $key => $flows): ?>
+				<?php if($flows->status==2){continue;} ?>
 			<tr class=<?=$flows->color() ?>>
 				<td><?=$flows->getTime('createtime') ?></td>
 				<td><?=$flows->get_name('out') ?></td>

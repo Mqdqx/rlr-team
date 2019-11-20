@@ -363,7 +363,7 @@ class TeamController extends Controller
             $minBallot = $vote->findMinballot();
             $noVote = $vote->noComplete();
             if (count($vote->res)==1) {
-                //如果只有一个候选者心愿满足统计结果
+                //如果只有一个候选者心愿则满足统计结果
                 //统计结果 发送邮件
                 $vote->statistics();
             } elseif ((!$minBallot) && $noVote) {

@@ -64,7 +64,7 @@ $this->params['breadcrumbs'][] = '团体：'.Yii::$app->session->get('team')->na
 	    	<tr><th>邀请时间</th><th>邀请者</th><th>受邀者</th><th>当前状态</th></tr>
 		    <?php foreach($invitedUsers as $k => $invitedUser): ?>
 		    	<tr>
-		    		<td><?=$invitedUser->message->sendtime ?></td>
+		    		<td><?=date('y年m月d日',$invitedUser->message->sendtime) ?></td>
 		    		<td><?=$invitedUser->message->fromUser->username ?></td>
 		    		<td><?=$invitedUser->message->toUser->username ?></td>
 		    		<td><?=$invitedUser->message->status() ?></td>

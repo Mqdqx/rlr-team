@@ -4,7 +4,7 @@
 use yii\bootstrap\ActiveForm;
 use yii\helpers\Url;
 use yii\helpers\Html;
-use yii\widgets\LinkPager;
+use yii\grid\GridView;
 
 $this->title = '平台财务';
 $this->params['breadcrumbs'][] = ['label'=>'应用中心','url' => Url::to([Yii::$app->user->identity->role.'/index'])];
@@ -21,25 +21,30 @@ $this->params['breadcrumbs'][] = $this->title;
 		<ul class="nav nav-tabs" id="nav_option">
 		</ul>
 		<!-- 横向导航 -->
-		<div>
-			<h3><?= Html::encode($data) ?></h3>
-		</div>
-		<hr>
-		<h4>当前沉淀余额：<?=Html::a('￥20000.00', Url::to(['admin/finance']),['class' => 'btn btn-default btn-lg'])?></h4>
-		<hr>
-		<!-- 查询栏 -->
-		<nav class="navbar navbar-default">
-			<div class="container-fluid"> 
-			<div class="navbar-header"><span class="navbar-brand">流水</span></div>
-			<form class="navbar-form navbar-left" role="search">
-				<div class="form-group"><input type="text" class="form-control" placeholder="输入关键词查询流水"></div>
-				<button type="button" class="btn btn-default" aria-label="Left Align">
-					<span class="glyphicon glyphicon-search" aria-hidden="true"></span>
-				</button>
-			</form>
-			</div>
-		</nav>
-		<!-- 查询栏 -->
-
+		<h3>平台财务</h3>
+		<h4>当前沉淀余额：<?=Html::a($balance, Url::to(['admin/finance']),['class' => 'btn btn-default btn-lg'])?></h4>
+		<?=GridView::widget([
+			'dataProvider'=>$dataProvider,
+			'layout'=>"{items}\n{pager}",
+			'emptyText'=>'当前无数据',
+			'columns'=>[
+				'flows_id',
+				['label'=>'申请者','attribute'=>'out_id','value'=>function($model){return $model->get_name('out');}],
+				['label'=>'产生时间','attribute'=>'createtime','value'=>function($model){return date('y-m-d H:i:s',$model->createtime);}],
+				'money',
+				['attribute'=>'status','value'=>function($model){return $model->type();}],
+				['attribute'=>'status','value'=>function($model){return $model->status();}],
+				[
+					'class'=>'yii\grid\ActionColumn',
+					'header'=>'操作',
+					'template'=>'{operate}',//展示按钮
+					'buttons'=>[
+						'operate'=>function($url, $model, $key) {
+							return Html::a('转账',Url::to(['admin/finance','option'=>'transfer','flows_id'=>$model->flows_id]),['class'=>'btn btn-info btn-xs','data-confirm'=>'您确定已经银行转账了吗？']);
+						}
+					],
+				],
+			],
+		]); ?>
 	</div>
 </div>

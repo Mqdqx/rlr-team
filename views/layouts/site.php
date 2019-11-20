@@ -61,6 +61,7 @@ AppAsset::register($this);
         'items' => [
             ['label' => '主页', 'url' => ['/site/index']],
             ['label' => '关于', 'url' => ['/site/about']],
+            ['label' => '社区', 'url' => ['/community/index']],
             Yii::$app->user->isGuest ? (
                 ['label' => '登录', 'url' => ['/site/login']]
             ) : (

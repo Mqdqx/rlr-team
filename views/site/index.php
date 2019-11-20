@@ -12,7 +12,6 @@ $this->title = '人恋人公益平台';
 </ul>
 
 	<div id="map"></div>
-	<p></p>
 	<script src="./jsmap.min.js"></script>
     <script>
     	var region = getUrlParam(window.location.href,'region');
@@ -26,32 +25,10 @@ $this->title = '人恋人公益平台';
 	                if (region == 'china') {
 	                	window.location.href=window.location.href+'&region='+id;
 	                } else {
-	                	document.querySelector( "p" ).innerHTML = id + " --- " + name;
+	                	//document.querySelector( "p" ).innerHTML = id + " --- " + name;
 	                }
-	                
 	            }
             });
-        })
-        
+        });   
     </script>
-
-
-<?php
-//var_dump(Yii::getAlias('@yii'));
-/*	echo '今天：'.date('Y-m-d');
-	echo "<br>";
-	echo '今天0点：'.strtotime(date('Y-m-d'));
-	echo "<br>";
-	echo '那天：'.date('Y-m-d',1564783200);
-	$day = date('Y-m-d',1564783200);
-	echo "<br>";
-	echo '那天0点：'.strtotime($day);
-	echo "<br>";
-	echo 1564783200;
-	echo '<br>';
-
-	echo '<hr>';
-	echo date('YmdHis').mt_rand(100,999);
-	echo '<hr>';*/
-?>
-
+    <h3 id="tip" class="text-center">点击地图中省市检索对应区域的社区</h3>

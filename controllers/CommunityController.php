@@ -7,6 +7,8 @@ use yii\filters\AccessControl;
 use yii\web\NotFoundHttpException;
 use yii\web\Controller;
 use yii\filters\VerbFilter;
+use yii\data\Pagination;
+use app\models\Community;
 
 class CommunityController extends Controller
 {
@@ -19,12 +21,17 @@ class CommunityController extends Controller
             //无权限访问过滤且报错
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['index'],
+                'only' => ['error'],
                 'rules' => [
                     [
-                        'actions' => ['index'],
+                        'actions' => ['error'],
                         'allow' => true,
                         'roles' => ['@'],
+                    ],
+                    [
+                        'actions' => [],
+                        'allow' => true,
+                        'roles' => ['?'],
                     ],
                 ],
             ],
@@ -60,9 +67,26 @@ class CommunityController extends Controller
      */
     public function actionIndex()
     {
-        $this->layout = Yii::$app->user->identity->role;
-        //社区主页
-        return $this->render('index');
+        $this->layout = Yii::$app->user->isGuest ? 'site' :Yii::$app->user->identity->role;
+        $id = Yii::$app->request->get('id');
+        if ($id) {
+            $community = Community::findOne(['community_id'=>$id]);
+            if (!$community) {throw new NotFoundHttpException("警告，越权操作！");}
+            return $this->render('index',['community'=>$community]);
+        } else {
+            $models = Community::find()->where(['status'=>1]);
+            $count = $models->count();
+            $pageSize = 12;
+            $pager = new Pagination(['totalCount'=>$count,'pageSize'=>$pageSize]);
+            $models = $models->offset($pager->offset)->limit($pager->limit)->all(); //分页处理
+            return $this->render('index',['models'=>$models,'pager'=>$pager]);
+        }
+
     }
     
+    public function actionError()
+    {
+        
+        //return $this->redirect(['site/error']);
+    }
 }

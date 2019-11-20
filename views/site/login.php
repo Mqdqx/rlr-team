@@ -38,8 +38,8 @@ $this->params['breadcrumbs'][] = $this->title;
         <div class="form-group">
             <div class="col-lg-offset-1 col-lg-11">
                 <?= Html::submitButton('登录', ['class' => 'btn btn-info', 'name' => 'login-button']) ?>
-                <?= Html::resetButton('重置', ['class' => 'btn btn-primary', 'name' => 'reset-button']) ?>
                 <?= Html::a('注册',Url::to(['site/register_vip']),['class' => 'btn btn-success', 'name' => 'register-button']) ?>
+                <?= Html::a('忘记密码',Url::to(['site/find_password','option'=>'send']),['class' => 'btn btn-primary', 'name' => 'register-button']) ?>
             </div>
         </div>
 

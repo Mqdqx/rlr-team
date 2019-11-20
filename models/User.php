@@ -43,11 +43,15 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             ['email','required','message'=>'邮箱地址不能为空！','on'=>['register']],
             ['email', 'email','message' => '邮箱地址格式不正确！', 'on'=>['register']],
             ['email', 'unique','message'=>'该邮箱地址已注册，请登录或激活！！','on'=>['register']],
-            ['password','required','message'=>'密码不能为空！','on'=>['register','invitation']],
-            ['repassword','required','message'=>'重复密码不能为空！','on'=>['register','invitation']],
-            ['repassword', 'compare', 'compareAttribute'=>'password','message'=>'两次密码输入不一致','on'=>['register','invitation']],
+            ['password','required','message'=>'密码不能为空！','on'=>['register','invitation','reset']],
+            ['repassword','required','message'=>'重复密码不能为空！','on'=>['register','invitation','reset']],
+            ['repassword', 'compare', 'compareAttribute'=>'password','message'=>'两次密码输入不一致','on'=>['register','invitation','reset']],
             ['agree', 'boolean','on'=>['register','invitation']],
             ['agree','compare','compareValue'=>true, 'operator'=>'==','message'=>'必须同意协议方可注册','on'=>['register','invitation']],
+
+            //找回密码时的规则
+            ['email','required','on'=>['send']],
+            ['email','exist','on'=>['send']],
             //默认验证规则
             [['number', 'createtime', 'logintime', 'status', 'version'], 'integer'],
             [['balance'], 'number'],

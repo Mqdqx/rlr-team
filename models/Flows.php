@@ -42,6 +42,11 @@ class Flows extends \yii\db\ActiveRecord
 
             [['money'],'validateMoney','on'=>['rechargeTeam']],
 
+            //体现申请规则
+            ['money','required','message'=>'请输入金额','on'=>['withdraw']],
+            ['money','integer','message'=>'提现金额必须为整数','on'=>['withdraw']],
+            ['money','compare','compareValue'=>Yii::$app->user->identity->balance,'operator'=>'<=','message'=>'提现金额必须小于或等于当前余额','on'=>['withdraw']],
+
             [['createtime', 'out_id', 'in_id', 'type', 'endtime', 'status'], 'integer'],
             [['money'], 'number'],
             [['out_role', 'in_role'], 'string', 'max' => 30],
@@ -66,16 +71,16 @@ class Flows extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'flows_id' => '流水主键ID',
+            'flows_id' => '流水编号',
             'createtime' => '产生时间戳',
             'out_role' => '出账方角色：vip/team/admin',
             'out_id' => '出账方ID：个人id/团体id/平台',
             'in_id' => '入账方ID：个人id/团体id/平台',
             'in_role' => '入账方角色：vip/team/admin',
-            'money' => '金额，两位小数',
+            'money' => '金额',
             'type' => '流水类型',
             'endtime' => '完成时间戳',
-            'status' => '当前状态：0->已完成，1->提现申请待完成',
+            'status' => '当前状态',
         ];
     }
 
@@ -125,6 +130,8 @@ class Flows extends \yii\db\ActiveRecord
                 return $this->in->username ? $this->in->username : $this->in->email;
             } elseif ($this->in_role == 'teamPurse') {
                 return $this->in->name;
+            } elseif ($this->in_role == 'vipBank') {
+                return '银行卡';
             }
         } elseif ($role == 'out') {
             if ($this->out_role == 'vipPurse') {
@@ -221,6 +228,35 @@ class Flows extends \yii\db\ActiveRecord
         $this->status = 0;
 
         return (bool)$this->save();
+    }
+
+    /**
+     * 用户体现申请
+     */
+    public function withdraw($data)
+    {
+        $this->scenario = 'withdraw';
+        if ($this->load($data) && $this->validate()) {
+            $transaction = Yii::$app->db->beginTransaction();
+            try {
+                Yii::$app->user->identity->balance -= $this->money;
+                if (!Yii::$app->user->identity->save()) {throw new \Exception();}
+                $this->createtime = time();
+                $this->out_role = 'vipPurse';
+                $this->out_id = Yii::$app->user->identity->user_id;
+                $this->in_id = Yii::$app->user->identity->user_id;
+                $this->in_role = 'vipBank';
+                $this->type = 2;
+                $this->status = 1;
+                if (!$this->save()) {throw new \Exception();}
+                $transaction->commit();
+                return true;
+            } catch (\Exception $e) {
+                $transaction->rollback();
+                return false;
+            }
+        }
+        return false;
     }
 
     /**

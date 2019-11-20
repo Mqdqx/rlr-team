@@ -4,6 +4,7 @@ namespace app\models;
 
 use Yii;
 use app\models\Wish;
+use app\models\Team;
 use app\models\Community;
 use app\models\VoteRes;
 use app\models\UserVote;
@@ -102,6 +103,14 @@ class Vote extends \yii\db\ActiveRecord
     public function getWishs()
     {
         return $this->hasMany(Wish::className(),['wish_id'=>'wish_id'])->viaTable(VoteRes::tableName(),['vote_id'=>'vote_id']);
+    }
+
+    /**
+     * 关联一对一的 团体
+     */
+    public function getTeam()
+    {
+        return $this->hasOne(Team::className(),['team_id'=>'team_id']);
     }
 
     /**
@@ -367,6 +376,13 @@ class Vote extends \yii\db\ActiveRecord
                 $res->amount = 0;
                 if (!$res->save()) {throw new \Exception();}
             }
+            //重启投票发邮件告之
+            //发给团体创建者
+            $mailer = Yii::$app->mailer->compose('vote_reset',['email'=>$this->team->email,'team_name'=>$this->team->name,'vote_id'=>$this->vote_id]);
+            $mailer->setFrom(Yii::$app->params['senderEmail']);
+            $mailer->setTo($this->team->email);
+            $mailer->setSubject('人恋人平台-投票活动重启');
+            $mailer->send();
             Yii::$app->session->setFlash('reset','存在多个最低票候选者，已经为您重启投票且延长了一天自动结束时间');
             $transaction->commit();
         } catch (\Exception $e) {

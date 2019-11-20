@@ -93,7 +93,7 @@ $showRes = ['text'=>[1=>'胜出',2=>'淘汰'],'class'=>[1=>'btn btn-info btn-xs'
 			<tr><th class="col-lg-2">投票主题</th><td colspan="3"><?=Html::encode($vote->title) ?></td></tr>
 			<tr><th class="col-lg-2">当前状态</th><td colspan="3"><?=Html::encode($vote::$_status[$vote->status]) ?></td></tr>
 			<tr><th class="col-lg-2">开始时间</th><td colspan="3"><?=date('y年m月d日',$vote->starttime) ?></td></tr>
-			<tr><th class="col-lg-2">结束时间</th><td colspan="3"><?=date('y年m月d日',$vote->endtime) ?></td></tr>
+			<tr><th class="col-lg-2">自动结束时间</th><td colspan="3"><?=date('y年m月d日',$vote->endtime) ?></td></tr>
 			<tr><th class="col-lg-2">候选者</th><th class="col-lg-1">心愿详情</th><th>所得票数  <span style="color:red">(此次投票活动您还剩  <?=$vote->surplus() ?>  票)</span></th><th class="col-lg-1">投票</th></tr>
 			<?php foreach($vote->wishs as $wish): ?>
 			<?php

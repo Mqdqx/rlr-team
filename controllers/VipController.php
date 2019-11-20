@@ -128,8 +128,15 @@ class VipController extends Controller
                 break;
             //提现
             case 'withdraw':
-                
-                return $this->render('finance',['models'=>$models,'pager'=>$pager]);
+                $model = new Flows();
+                if (Yii::$app->request->isPost) {
+                    $post = Yii::$app->request->post();
+                    if ($model->withdraw($post)) {
+                        Yii::$app->session->setFlash('withdraw','成功发起体现申请，您的余额已相应锁定了一部分，请耐心等待工作人员汇款！');
+                        return $this->redirect(['vip/finance','option'=>'withdraw']);
+                    }
+                }
+                return $this->render('finance',['models'=>$models,'pager'=>$pager,'model'=>$model]);
                 break;
             default:
                 throw new NotFoundHttpException("警告！越权操作！");
