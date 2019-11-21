@@ -12,7 +12,7 @@ $this->title = '人恋人公益平台';
 </ul>
 <div class="col-lg-12">
 	<div id="map"></div>
-	<script src="./jsmap.min.js"></script>
+	<script src="./jsMap.min.js"></script>
     <script>
     	var region = getUrlParam(window.location.href,'region');
     	if (region == null) {region='china';}

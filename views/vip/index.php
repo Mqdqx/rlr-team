@@ -14,6 +14,6 @@ $this->params['breadcrumbs'][] = $this->title;
 		<ul class="nav nav-tabs" id="nav_option">
 		</ul>
 		<!-- 横向导航 -->
-		<h1>默认页：各信息总览.....</h1>
+		<h1>默认页：各信息总览.....待完善</h1>
 	</div>
 </div>
