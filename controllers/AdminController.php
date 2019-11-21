@@ -91,6 +91,15 @@ class AdminController extends Controller
      */
     public function actionFinance()
     {
+        if (Yii::$app->request->get('option')=='transfer') {
+            $flows = Flows::findOne(['status'=>1,'flows_id'=>Yii::$app->request->get('flows_id')]);
+            $flows->status = 0;
+            $flows->endtime = time();
+            if ($flows->save()) {
+                Yii::$app->session->setFlash('transfer','转账告知！');
+                return $this->redirect(['admin/finance']);//剔除传参
+            }
+        }
         $balance = (new \yii\db\Query)->select([])->from('user')->sum('balance');
         $balance += (new \yii\db\Query)->select([])->where(['status'=>1])->from('flows')->sum('money');
         $dataProvider = new ActiveDataProvider([

@@ -13,6 +13,7 @@ use yii\data\Pagination;
 use app\models\LoginForm;
 use app\models\ContactForm;
 use app\models\User;
+use app\models\Community;
 use app\models\Message;
 use app\models\TeamMessage;
 use app\models\Guardian;
@@ -34,7 +35,7 @@ class SiteController extends Controller
         return [
             [
                 'class' => AjaxFilter::className(),//非AJAX过滤器,
-                'only' => ['getcity']
+                'only' => ['getcity','getcommunity']
             ],
             //无权限访问过滤且报错
             'access' => [
@@ -427,6 +428,17 @@ class SiteController extends Controller
         $city = Region::find()->where(['type'=>1,'parent_id'=>$province_id])->asArray()->all();
         $city = ArrayHelper::map($city,'id','name');
         echo json_encode($city);
+    }
+
+    /**
+     * 响应主页检索对应城市的社区
+     */
+    public function actionGetcommunity()
+    {
+        $city = Yii::$app->request->get('city');
+        $city = (new \yii\db\Query)->select(['id'])->where(['and','type=1',['like','name',$city]])->from('region')->one();
+        $communitys = Community::find()->where(['city_id'=>$city['id']])->asArray()->all();
+        echo json_encode($communitys);
     }
 
     /**

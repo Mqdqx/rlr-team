@@ -23,6 +23,9 @@ $this->params['breadcrumbs'][] = $this->title;
 		<!-- 横向导航 -->
 		<h3>平台财务</h3>
 		<h4>当前沉淀余额：<?=Html::a($balance, Url::to(['admin/finance']),['class' => 'btn btn-default btn-lg'])?></h4>
+		<?php if (Yii::$app->session->hasFlash('transfer')): ?>
+			<div class="alert alert-success"><?=Yii::$app->session->getFlash('transfer') ?></div>
+		<?php endif ?>
 		<?=GridView::widget([
 			'dataProvider'=>$dataProvider,
 			'layout'=>"{items}\n{pager}",
