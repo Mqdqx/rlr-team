@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: 2019-11-14 22:56:50
+-- Generation Time: 2019-11-21 13:42:04
 -- 服务器版本： 5.7.14
 -- PHP Version: 7.0.10
 
@@ -44,7 +44,7 @@ CREATE TABLE `community` (
 --
 
 INSERT INTO `community` (`community_id`, `createtime`, `province_id`, `city_id`, `user_id`, `minpercent`, `address`, `community_name`, `remarks`, `status`) VALUES
-(6, 1572795634, 5036, 5915, 38, 40, '那个地方', '什么中学', '备注呗审核你了', 1);
+(7, 1574227385, 5036, 5915, 45, 40, '梅州城北东山路', '梅州东山中学', '正经测试', 1);
 
 -- --------------------------------------------------------
 
@@ -65,6 +65,14 @@ CREATE TABLE `flows` (
   `status` tinyint(2) UNSIGNED NOT NULL DEFAULT '0' COMMENT '当前状态：0->已完成，1->提现申请待完成'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+--
+-- 转存表中的数据 `flows`
+--
+
+INSERT INTO `flows` (`flows_id`, `createtime`, `out_role`, `out_id`, `in_id`, `in_role`, `money`, `type`, `endtime`, `status`) VALUES
+(17, 1574259148, 'vipPurse', 47, 47, 'vipBank', '3.00', 2, 0, 0),
+(18, 1574259424, 'vipPurse', 47, 47, 'vipBank', '2.00', 2, 0, 0);
+
 -- --------------------------------------------------------
 
 --
@@ -81,13 +89,6 @@ CREATE TABLE `guardian` (
   `address` varchar(255) NOT NULL DEFAULT '地址未知' COMMENT '监护人常居住地址',
   `bankcard` char(20) NOT NULL DEFAULT '' COMMENT '银行卡号'
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-
---
--- 转存表中的数据 `guardian`
---
-
-INSERT INTO `guardian` (`guardian_id`, `user_id`, `truename`, `relation`, `idcard`, `number`, `address`, `bankcard`) VALUES
-(1, 39, '监护人一', '师生', '', 13510554546, '', '321');
 
 -- --------------------------------------------------------
 
@@ -121,6 +122,14 @@ CREATE TABLE `message` (
   `content` varchar(255) NOT NULL DEFAULT '' COMMENT '正文内容',
   `status` tinyint(2) UNSIGNED NOT NULL DEFAULT '0' COMMENT '状态：1->发送成功，2->已读'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- 转存表中的数据 `message`
+--
+
+INSERT INTO `message` (`message_id`, `sendtime`, `from`, `to`, `title`, `type`, `content`, `status`) VALUES
+(4, 1574227502, 45, 46, '邀请入驻平台', 0, '测试通信功能', 1),
+(5, 1574227584, 46, 47, '团体加入邀请', 2, '  用户邀请您加入 古典文学社 团体！', 3);
 
 -- --------------------------------------------------------
 
@@ -48524,8 +48533,7 @@ CREATE TABLE `team` (
 --
 
 INSERT INTO `team` (`team_id`, `createtime`, `user_id`, `status`, `balance`, `name`) VALUES
-(1, 1573473104, 24, 1, '0.00', '均衡教派'),
-(2, 1573473225, 25, 1, '0.00', '艾欧尼亚');
+(5, 1574227563, 46, 1, '0.00', '古典文学社');
 
 -- --------------------------------------------------------
 
@@ -48538,6 +48546,13 @@ CREATE TABLE `team_message` (
   `team_id` int(10) UNSIGNED NOT NULL DEFAULT '0' COMMENT '团体ID',
   `message_id` int(10) UNSIGNED NOT NULL DEFAULT '0' COMMENT '信息ID'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- 转存表中的数据 `team_message`
+--
+
+INSERT INTO `team_message` (`id`, `team_id`, `message_id`) VALUES
+(3, 5, 5);
 
 -- --------------------------------------------------------
 
@@ -48595,11 +48610,10 @@ CREATE TABLE `user` (
 --
 
 INSERT INTO `user` (`user_id`, `number`, `email`, `username`, `password`, `createtime`, `logintime`, `loginip`, `status`, `token`, `role`, `truename`, `image`, `idcard`, `idcardfront`, `idcardback`, `verification`, `balance`, `alipay`, `wechat`, `sex`, `birthday`, `address`, `company`, `remarks`, `version`) VALUES
-(1, 15989119518, '972436798@rlr.com', 'iamadmin', '$2y$10$v1VPFJDMRoOE7SuetyHlQuB9Wyx9kdizLWOOurW8LXHDwV.USynty', 0, 1573475507, '::1', 1, '', 'admin', '', './image/default.jpg', '', './image/idcardfront.jpg', './image/idcardback.jpg', '', '0.00', '', '', '', '', '', '', '', 11),
-(24, 17875303902, 'liu972436798@163.com', '新垣结衣', '$2y$10$xjmDmhiWCo8/POOrGFWpOuZQKwkUZOiNS5vcRU8J8z7JY4gVPYX/a', 1569593875, 1573737687, '::1', 1, '$2y$10$wLdJijolr3gLIojWLQuK5eNLub/jRUIuDtzwadySukGxRljzjJFN.', 'vip', 'lsh', './image/default.jpg', '', './image/idcardfront.jpg', './image/idcardback.jpg', '', '10.00', '15989119518', '', '保密', '', '', '', 'yuiiiiiiiii', 88),
-(26, 18379873333, 'mqdqxaragaki@sina.com', '弥弥弥弥弥弥弥弥', '$2y$10$YeoL34dxicGU3iAlrh./4eXKzsOm3UvAJdYFfNZQkDMOF7ySqXw4.', 1570545613, 1571660095, '::1', 1, '$2y$10$RKJkM59FK.mM8zlaM4jVWuJVFOw3b7bmLh/vZKq6gtIwSwBl.wn4y', 'vip', '楚夏弥', './image/default.jpg', '', './image/idcardfront.jpg', './image/idcardback.jpg', '', '0.00', '15989119518', '', '保密', '', '', '', '', 21),
-(38, 13511111111, '972436798@qq.com', '什么中学', '$2y$10$FEb8HxzT/FajPrh5c/5TY.d7jfGi90H43UjtAmEXPhFUqi.08UY5m', 1572678990, 1573650444, '::1', 1, '$2y$10$riCn.jdAOhQbhykVt5t8peZQI1L3RiOnqO747Ci2gOmlms90fYw.i', 'witness', '李老师', './image/default.jpg', '', './image/idcardfront.jpg', './image/idcardback.jpg', '', '0.00', '', '', '', '', '', '', '', 11),
-(39, 18379874835, 'rlrteam@163.com', '北白川玉子', '$2y$10$HUmEJXNtY978mq3mGe13qujtE4Sofn.BRbS69ZV501KWEwLcICnjS', 1573647052, 1573735878, '::1', 1, '$2y$10$SyMkO3DF6sVTwBLrMKYBB.h3pZrJssmS1hQzT4KYvWdX8LdNQ.tPu', 'vip', '入须', './image/default.jpg', '', './image/idcardfront.jpg', './image/idcardback.jpg', '', '0.00', '', '', '女', '', '', '', '', 3);
+(1, 15989119518, '972436798@rlr.com', 'iamadmin', '$2y$10$v1VPFJDMRoOE7SuetyHlQuB9Wyx9kdizLWOOurW8LXHDwV.USynty', 0, 1574307928, '::1', 1, '', 'admin', '', './image/default.jpg', '', './image/idcardfront.jpg', './image/idcardback.jpg', '', '0.00', '', '', '', '', '', '', '', 16),
+(45, 13510101010, '972436798@qq.com', '梅州东山中学', '$2y$10$.76OtvFOF7ktW0Y/w8xpReKmqYyxqzPWgtrR9rscWUty263mqWZG2', 1574227268, 1574256027, '::1', 1, '$2y$10$5ZQZkytFjJUZUgjYcJ1nXu6Ify9y3hDw9k./lGCvQMOGXqUs5uqWa', 'witness', '测试老师', './image/default.jpg', '', './image/idcardfront.jpg', './image/idcardback.jpg', '', '0.00', '', '', '', '', '', '', '', 9),
+(46, 0, 'liu972436798@163.com', '', '$2y$10$Y/MU8tce1K9JabZ8Fg7R/e133mfd.bVJJj4Oe8hzFSF/o372tIxni', 1574227501, 1574314647, '::1', 1, '$2y$10$iyA8uubWfWxz5zNw/IYt4.MNX4KWblDPw3BYVkVdg9ZTqhRvZlnW6', 'vip', '', './image/default.jpg', '', './image/idcardfront.jpg', './image/idcardback.jpg', '', '0.00', '', '', '', '', '', '', '', 5),
+(47, 17875303902, 'rlrteam@163.com', 'rlrteam', '$2y$10$SyO5Mg9HabsUfgln1DC35uRr8/jhZ0bRcEenG7bMCZPbpF1PO7edC', 1574227583, 1574307094, '::1', 1, '$2y$10$oPmYThqzTW/Y4c03amQFaO8GCcmnVlZFniJmrgknI.BFU1cvmVCrO', 'vip', '', './image/default.jpg', '', './image/idcardfront.jpg', './image/idcardback.jpg', '', '4.00', '', '', '男', '', '', '', '', 13);
 
 -- --------------------------------------------------------
 
@@ -48618,8 +48632,8 @@ CREATE TABLE `user_team` (
 --
 
 INSERT INTO `user_team` (`id`, `user_id`, `team_id`) VALUES
-(1, 24, 1),
-(2, 25, 2);
+(7, 46, 5),
+(8, 47, 5);
 
 -- --------------------------------------------------------
 
@@ -48643,6 +48657,7 @@ CREATE TABLE `user_vote` (
 CREATE TABLE `vote` (
   `vote_id` int(10) UNSIGNED NOT NULL COMMENT '一次投票活动的主键ID',
   `team_id` int(10) UNSIGNED NOT NULL DEFAULT '0' COMMENT '隶属团体的ID',
+  `community_id` int(10) UNSIGNED NOT NULL DEFAULT '0' COMMENT '资助心愿所属社区',
   `title` varchar(255) NOT NULL DEFAULT '' COMMENT '此次投票的标题',
   `support_num` tinyint(2) UNSIGNED NOT NULL DEFAULT '0' COMMENT '最终资助的人数',
   `candidate_num` tinyint(2) UNSIGNED NOT NULL DEFAULT '0' COMMENT '候选人数',
@@ -48698,15 +48713,6 @@ CREATE TABLE `wish` (
   `locking_user_id` int(10) UNSIGNED NOT NULL DEFAULT '0' COMMENT '锁定的对象id：资助人id',
   `version` int(10) UNSIGNED NOT NULL DEFAULT '0' COMMENT '版本号（乐观锁）'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
---
--- 转存表中的数据 `wish`
---
-
-INSERT INTO `wish` (`wish_id`, `user_id`, `token`, `tokentime`, `money`, `transfered`, `month`, `label`, `per`, `filepath`, `description`, `verify_res`, `verify_user_id`, `verify_time`, `publish_time`, `start_time`, `end_time`, `status`, `locking_time`, `locking_team_id`, `locking_user_id`, `version`) VALUES
-(1006, 24, '8dac0a9445fce18db69466093dd2ddfe', 1572849234, '180.00', 0, 6, 1, '30', '', '那就这样吧', '假的', 0000000038, 1572850537, 1572849344, 0, 0, 9, 0, 0, 0, 3),
-(1007, 24, '85f8b1c48325fcdc97b2ae2b1f90225f', 1572850749, '80.00', 0, 4, 2, '20', './file/wish/1007.docx', '这次可以', '过过过', 0000000038, 1572850814, 1572850790, 1572930855, 0, 4, 1572929712, 0, 25, 5),
-(1008, 39, '9587a1e25c735eb34f9f18328a83e711', 1573736035, '50.00', 0, 5, 1, '10', '', '一个测试', '救救孩子！', 0000000038, 1573737564, 1573737079, 0, 0, 2, 0, 0, 0, 2);
 
 -- --------------------------------------------------------
 
@@ -48834,17 +48840,17 @@ ALTER TABLE `wish_flows`
 -- 使用表AUTO_INCREMENT `community`
 --
 ALTER TABLE `community`
-  MODIFY `community_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '社区主键ID', AUTO_INCREMENT=7;
+  MODIFY `community_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '社区主键ID', AUTO_INCREMENT=8;
 --
 -- 使用表AUTO_INCREMENT `flows`
 --
 ALTER TABLE `flows`
-  MODIFY `flows_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '流水主键ID', AUTO_INCREMENT=52;
+  MODIFY `flows_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '流水主键ID', AUTO_INCREMENT=19;
 --
 -- 使用表AUTO_INCREMENT `guardian`
 --
 ALTER TABLE `guardian`
-  MODIFY `guardian_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '监护人信息主键ID', AUTO_INCREMENT=2;
+  MODIFY `guardian_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '监护人信息主键ID', AUTO_INCREMENT=4;
 --
 -- 使用表AUTO_INCREMENT `jointeam`
 --
@@ -48854,7 +48860,7 @@ ALTER TABLE `jointeam`
 -- 使用表AUTO_INCREMENT `message`
 --
 ALTER TABLE `message`
-  MODIFY `message_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '站内信主键ID';
+  MODIFY `message_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '站内信主键ID', AUTO_INCREMENT=6;
 --
 -- 使用表AUTO_INCREMENT `region`
 --
@@ -48864,52 +48870,52 @@ ALTER TABLE `region`
 -- 使用表AUTO_INCREMENT `team`
 --
 ALTER TABLE `team`
-  MODIFY `team_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '团体主键ID', AUTO_INCREMENT=3;
+  MODIFY `team_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '团体主键ID', AUTO_INCREMENT=6;
 --
 -- 使用表AUTO_INCREMENT `team_message`
 --
 ALTER TABLE `team_message`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键ID';
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键ID', AUTO_INCREMENT=4;
 --
 -- 使用表AUTO_INCREMENT `trade`
 --
 ALTER TABLE `trade`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键ID', AUTO_INCREMENT=45;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键ID';
 --
 -- 使用表AUTO_INCREMENT `user`
 --
 ALTER TABLE `user`
-  MODIFY `user_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键ID', AUTO_INCREMENT=40;
+  MODIFY `user_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键ID', AUTO_INCREMENT=48;
 --
 -- 使用表AUTO_INCREMENT `user_team`
 --
 ALTER TABLE `user_team`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '关联表主键ID', AUTO_INCREMENT=3;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '关联表主键ID', AUTO_INCREMENT=9;
 --
 -- 使用表AUTO_INCREMENT `user_vote`
 --
 ALTER TABLE `user_vote`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键ID';
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键ID', AUTO_INCREMENT=14;
 --
 -- 使用表AUTO_INCREMENT `vote`
 --
 ALTER TABLE `vote`
-  MODIFY `vote_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '一次投票活动的主键ID';
+  MODIFY `vote_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '一次投票活动的主键ID', AUTO_INCREMENT=8;
 --
 -- 使用表AUTO_INCREMENT `vote_res`
 --
 ALTER TABLE `vote_res`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '投票任何时刻结果主键ID';
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '投票任何时刻结果主键ID', AUTO_INCREMENT=7;
 --
 -- 使用表AUTO_INCREMENT `wish`
 --
 ALTER TABLE `wish`
-  MODIFY `wish_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '心愿主键ID', AUTO_INCREMENT=1009;
+  MODIFY `wish_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '心愿主键ID', AUTO_INCREMENT=1015;
 --
 -- 使用表AUTO_INCREMENT `wish_flows`
 --
 ALTER TABLE `wish_flows`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '心愿-流水关联表主键';
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '心愿-流水关联表主键', AUTO_INCREMENT=16;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
