@@ -41,6 +41,7 @@ $titles = ['flows'=>'账单','recharge'=>'充值','withdraw'=>'提现'];
 			<?php elseif(Yii::$app->session->hasFlash('payFail')): ?>
 				<div class="alert alert-danger">操作失败！请稍后再试或反馈此问题!</div>
 			<?php endif; ?>
+			<?php if(Yii::$app->user->identity->balance < 500): ?><!-- 防止恶意测试 -->
 			<?php 
 				$form = ActiveForm::begin([
 					'layout'=>'horizontal',
@@ -52,7 +53,7 @@ $titles = ['flows'=>'账单','recharge'=>'充值','withdraw'=>'提现'];
 			?>
 			<?=$form->field($model,'money')->textInput(['placeholder'=>'请输入整数充值金额']) ?>
 			<?php ActiveForm::end(); ?>
-		
+			<?php endif; ?>
 		<?php elseif(Yii::$app->request->get('option') == 'withdraw'): ?>
 			<?php if(Yii::$app->session->hasFlash('withdraw')): ?>
 				<div class="alert alert-success"><?=Yii::$app->session->getFlash('withdraw') ?></div>

@@ -59,7 +59,7 @@ AppAsset::register($this);
     echo Nav::widget([
         'options' => ['class' => 'navbar-nav navbar-right'],
         'items' => [
-            ['label' => $community_name,'url'=>['/community/index']],
+            ['label' => $community_name,'url'=>['/community/index','id'=>Yii::$app->user->identity->community->community_id]],
             ['label' => '主页', 'url' => ['/site/index']],
             ['label' => '关于', 'url' => ['/site/about']],
             ['label' => '社区', 'url' => ['/community/index']],

@@ -72,6 +72,7 @@ class Wish extends \yii\db\ActiveRecord
     {
         return [
             [['token','month','money','per','label'],'required','on'=>['publish']],
+            ['per','compare','compareValue'=>21,'operator'=>'<=','message'=>'测试阶段，必须小于20','on'=>['publish']],
             ['description','string','max'=>255,'on'=>['publish']],
             ['money','validateMoney','on'=>['publish','start']],
             ['token','validateToken','on'=>['publish']],//必须放在publish场景的最后

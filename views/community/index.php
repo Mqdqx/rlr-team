@@ -17,7 +17,15 @@ if ($id) {$this->title .= '-'.$community->community_name;}
 </ul>
 
 <?php if ($id): ?>
-	
+	<?php
+		$tokens = (new \yii\db\Query())->select(['token'])->where(['status'=>0,'verify_user_id'=>$community->user->user_id])->from('wish')->all();
+	?>
+	<div class="alert alert-info">
+		<p>当前社区可用心愿码：(由社区管理员生成)</p>
+		<?php foreach ($tokens as $k => $token): ?>
+			<p><?=$token['token'] ?></p>
+		<?php endforeach ?>
+	</div>
 	<h1><?=$community->community_name ?></h1>
 	<div id="myCarousel" class="carousel slide" data-ride="carousel">
 		<ol class="carousel-indicators">
@@ -71,6 +79,7 @@ if ($id) {$this->title .= '-'.$community->community_name;}
 		<p class="text-info">总捐助金额:￥1000</p>
 		<p><a class="btn btn-default" href="#" role="button">了解更多 &raquo;</a></p>
 		</div>
+
 		<div class="col-lg-4">
 		<img class="img-rounded" src="./image/heart.jpg" alt="Generic placeholder image" width="140" height="140">
 		<h3>活跃者用户名</h3>
@@ -131,26 +140,6 @@ if ($id) {$this->title .= '-'.$community->community_name;}
 		<span class="text-muted"><?=$community->getRegion() ?></span></a>
 		</div>
 		<?php endforeach; ?>
-
-		<div class="col-xs-6 col-sm-3 placeholder"><a href=<?=Url::to(['community/index','id'=>$community->community_id]) ?>>
-		<img src="./image/community.jpg" width="200" height="200" class="img-circle" alt="Generic placeholder thumbnail">
-		<h4><?=$community->community_name ?></h4>
-		<span class="text-muted"><?=$community->getRegion() ?></span></a>
-		</div>
-		<div class="col-xs-6 col-sm-3 placeholder"><a href=<?=Url::to(['community/index','id'=>$community->community_id]) ?>>
-		<img src="./image/community.jpg" width="200" height="200" class="img-circle" alt="Generic placeholder thumbnail">
-		<h4><?=$community->community_name ?></h4>
-		<span class="text-muted"><?=$community->getRegion() ?></span></a>
-		</div><div class="col-xs-6 col-sm-3 placeholder"><a href=<?=Url::to(['community/index','id'=>$community->community_id]) ?>>
-		<img src="./image/community.jpg" width="200" height="200" class="img-circle" alt="Generic placeholder thumbnail">
-		<h4><?=$community->community_name ?></h4>
-		<span class="text-muted"><?=$community->getRegion() ?></span></a>
-		</div>
-		<div class="col-xs-6 col-sm-3 placeholder"><a href=<?=Url::to(['community/index','id'=>$community->community_id]) ?>>
-		<img src="./image/community.jpg" width="200" height="200" class="img-circle" alt="Generic placeholder thumbnail">
-		<h4><?=$community->community_name ?></h4>
-		<span class="text-muted"><?=$community->getRegion() ?></span></a>
-		</div>
 
 	</div>
 	<div class="pagination pull-right"><?=LinkPager::widget(['pagination'=>$pager]) ?></div>

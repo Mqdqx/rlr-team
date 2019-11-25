@@ -39,6 +39,8 @@ class Flows extends \yii\db\ActiveRecord
         return [
             [['money'],'required','message'=>'请输入金额','on'=>['recharge','rechargeTeam']],
             [['money'],'integer','message'=>'充值金额必须为整数','on'=>['recharge','rechargeTeam']],
+            //防止恶意测试
+            [['money'],'compare','compareValue'=>100,'operator'=>'<=','message'=>'测试阶段，充值金额必须小于100','on'=>['recharge']],
 
             [['money'],'validateMoney','on'=>['rechargeTeam']],
 
